@@ -1,6 +1,21 @@
 import React from "react";
 import { useEffect, useState } from "react";
 
+interface Notification {
+  id: string;
+  type: string;
+  message: string;
+  read: boolean;
+  created_at: string;
+  ticket_id?: string | null;
+}
+
+interface UserRead {
+  full_name: string;
+  email: string;
+  agency?: string | null;
+}
+
 interface TechnicianDashboardProps {
   token: string;
 }
@@ -31,7 +46,78 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
   const [resolveTicket, setResolveTicket] = useState<string | null>(null);
   const [resolutionSummary, setResolutionSummary] = useState<string>("");
   const [viewTicketDetails, setViewTicketDetails] = useState<string | null>(null);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState<number>(0);
+  const [showNotifications, setShowNotifications] = useState<boolean>(false);
+  const [userInfo, setUserInfo] = useState<UserRead | null>(null);
   const [ticketDetails, setTicketDetails] = useState<Ticket | null>(null);
+
+  async function loadNotifications() {
+    if (!token || token.trim() === "") {
+      return;
+    }
+    
+    try {
+      const res = await fetch("http://localhost:8000/notifications/", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setNotifications(data);
+      }
+    } catch (err) {
+      console.error("Erreur lors du chargement des notifications:", err);
+    }
+  }
+
+  async function loadUnreadCount() {
+    if (!token || token.trim() === "") {
+      return;
+    }
+    
+    try {
+      const res = await fetch("http://localhost:8000/notifications/unread/count", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setUnreadCount(data.unread_count || 0);
+      }
+    } catch (err) {
+      console.error("Erreur lors du chargement du nombre de notifications non lues:", err);
+    }
+  }
+
+  async function markNotificationAsRead(notificationId: string) {
+    if (!token || token.trim() === "") {
+      return;
+    }
+    
+    try {
+      const res = await fetch(`http://localhost:8000/notifications/${notificationId}/read`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (res.ok) {
+        await loadNotifications();
+        await loadUnreadCount();
+      }
+    } catch (err) {
+      console.error("Erreur lors du marquage de la notification comme lue:", err);
+    }
+  }
+
+  function handleLogout() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userRole");
+    window.location.href = "/";
+  }
 
   useEffect(() => {
     async function loadTickets() {
@@ -49,7 +135,39 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
         console.error("Erreur chargement tickets:", err);
       }
     }
+
+    async function loadUserInfo() {
+      try {
+        const meRes = await fetch("http://localhost:8000/auth/me", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (meRes.ok) {
+          const meData = await meRes.json();
+          setUserInfo({
+            full_name: meData.full_name,
+            email: meData.email,
+            agency: meData.agency
+          });
+        }
+      } catch (err) {
+        console.error("Erreur chargement infos utilisateur:", err);
+      }
+    }
+
     void loadTickets();
+    void loadUserInfo();
+    void loadNotifications();
+    void loadUnreadCount();
+
+    // Recharger les notifications toutes les 30 secondes
+    const interval = setInterval(() => {
+      void loadNotifications();
+      void loadUnreadCount();
+    }, 30000);
+    
+    return () => clearInterval(interval);
   }, [token]);
 
   async function loadTicketDetails(ticketId: string) {
@@ -319,8 +437,208 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
   const resolvedCount = resolvedTickets.length;
 
   return (
-    <div style={{ maxWidth: 1200, margin: "40px auto", fontFamily: "sans-serif", padding: "0 20px" }}>
-      <h2>Tableau de bord - Technicien</h2>
+    <div style={{ display: "flex", minHeight: "100vh", fontFamily: "sans-serif", background: "#f5f5f5" }}>
+      {/* Sidebar */}
+      <div style={{ 
+        width: "250px", 
+        background: "#1e293b", 
+        color: "white", 
+        padding: "20px",
+        display: "flex",
+        flexDirection: "column",
+        gap: "20px"
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "30px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <div style={{ width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <path d="M4 7L12 3L20 7V17L12 21L4 17V7Z" stroke="#3b82f6" strokeWidth="2" strokeLinejoin="round" />
+                <path d="M4 7L12 11L20 7" stroke="#3b82f6" strokeWidth="2" strokeLinejoin="round" />
+                <path d="M12 11V21" stroke="#3b82f6" strokeWidth="2" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <div style={{ fontSize: "18px", fontWeight: "600" }}>Gestion d'Incidents</div>
+          </div>
+        </div>
+        <div 
+          style={{ 
+            display: "flex", 
+            alignItems: "center", 
+            gap: "12px", 
+            padding: "12px", 
+            background: "rgba(255,255,255,0.1)", 
+            borderRadius: "8px",
+            cursor: "pointer"
+          }}
+        >
+          <div style={{ width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <rect x="4" y="11" width="3" height="7" rx="1" fill="white" />
+              <rect x="10.5" y="8" width="3" height="10" rx="1" fill="white" />
+              <rect x="17" y="5" width="3" height="13" rx="1" fill="white" />
+            </svg>
+          </div>
+          <div>Tableau de Bord</div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+        {/* Barre de navigation en haut */}
+        <div style={{
+          background: "#1e293b",
+          padding: "16px 30px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "flex-end",
+          gap: "24px",
+          borderBottom: "1px solid #0f172a"
+        }}>
+          <div style={{ 
+            cursor: "pointer", 
+            width: "24px", 
+            height: "24px", 
+            display: "flex", 
+            alignItems: "center", 
+            justifyContent: "center",
+            color: "white"
+          }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" fill="currentColor"/>
+              <path d="M19 13a2 2 0 0 1-2 2H5l-4 4V3a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" fill="currentColor" opacity="0.6" transform="translate(2, 2)"/>
+            </svg>
+          </div>
+          <div 
+            onClick={() => setShowNotifications(!showNotifications)}
+            style={{ 
+              cursor: "pointer", 
+              width: "24px", 
+              height: "24px", 
+              display: "flex", 
+              alignItems: "center", 
+              justifyContent: "center",
+              color: "white",
+              position: "relative"
+            }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" fill="currentColor"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" fill="currentColor"/>
+            </svg>
+            {unreadCount > 0 && (
+              <span style={{
+                position: "absolute",
+                top: "-5px",
+                right: "-5px",
+                minWidth: "18px",
+                height: "18px",
+                background: "#ef4444",
+                borderRadius: "50%",
+                border: "2px solid #1e293b",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "11px",
+                fontWeight: "bold",
+                color: "white",
+                padding: "0 4px"
+              }}>
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            )}
+          </div>
+          <div style={{ 
+            width: "1px", 
+            height: "24px", 
+            background: "#4b5563" 
+          }}></div>
+          <div style={{ 
+            display: "flex", 
+            alignItems: "center", 
+            gap: "12px",
+            color: "white",
+            position: "relative"
+          }}>
+            <span style={{ fontSize: "14px", fontWeight: "500" }}>
+              {userInfo?.full_name || "Utilisateur"}
+            </span>
+            <div 
+              style={{ position: "relative", cursor: "pointer" }}
+              onClick={() => {
+                const menu = document.getElementById("profile-menu");
+                if (menu) {
+                  menu.style.display = menu.style.display === "none" ? "block" : "none";
+                }
+              }}
+            >
+              <div style={{
+                width: "36px",
+                height: "36px",
+                borderRadius: "50%",
+                background: "#3b82f6",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "white",
+                fontSize: "14px",
+                fontWeight: "600"
+              }}>
+                {userInfo?.full_name ? userInfo.full_name.charAt(0).toUpperCase() : "U"}
+              </div>
+              <div style={{
+                position: "absolute",
+                bottom: "0",
+                right: "0",
+                width: "12px",
+                height: "12px",
+                background: "#10b981",
+                borderRadius: "50%",
+                border: "2px solid #1e293b"
+              }}></div>
+            </div>
+            <div
+              id="profile-menu"
+              style={{
+                position: "absolute",
+                right: 0,
+                top: "48px",
+                background: "white",
+                borderRadius: "8px",
+                boxShadow: "0 10px 25px rgba(0,0,0,0.15)",
+                padding: "8px 0",
+                minWidth: "160px",
+                zIndex: 50,
+                color: "#111827",
+                display: "none"
+              }}
+            >
+              <button
+                type="button"
+                onClick={handleLogout}
+                style={{
+                  width: "100%",
+                  padding: "8px 16px",
+                  background: "transparent",
+                  border: "none",
+                  textAlign: "left",
+                  fontSize: "14px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  color: "#111827"
+                }}
+              >
+                <span style={{ fontSize: "16px" }}>⎋</span>
+                <span>Se déconnecter</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Contenu principal avec scroll */}
+        <div style={{ flex: 1, padding: "30px", overflow: "auto" }}>
+          <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+            <h2>Tableau de bord - Technicien</h2>
 
       <div style={{ display: "flex", gap: "16px", margin: "24px 0" }}>
         <div style={{ padding: "16px", background: "white", borderRadius: "8px", boxShadow: "0 2px 4px rgba(0,0,0,0.1)", flex: 1 }}>
@@ -394,20 +712,6 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                         style={{ fontSize: "12px", padding: "6px 12px", backgroundColor: "#6c757d", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}
                       >
                         Voir détails
-                      </button>
-                      <button
-                        onClick={() => handleAcceptAssignment(t.id)}
-                        disabled={loading}
-                        style={{ fontSize: "12px", padding: "6px 12px", backgroundColor: "#28a745", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}
-                      >
-                        Accepter
-                      </button>
-                      <button
-                        onClick={() => handleRejectAssignment(t.id)}
-                        disabled={loading}
-                        style={{ fontSize: "12px", padding: "6px 12px", backgroundColor: "#dc3545", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}
-                      >
-                        Refuser
                       </button>
                       <button
                         onClick={() => handleTakeCharge(t.id)}
@@ -776,6 +1080,150 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
               >
                 Fermer
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+          </div>
+        </div>
+      </div>
+
+      {/* Modal de notifications */}
+      {showNotifications && (
+        <div 
+          onClick={() => setShowNotifications(false)}
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0,0,0,0.5)",
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "flex-end",
+            padding: "60px 20px 20px 20px",
+            zIndex: 1000
+          }}
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "white",
+              borderRadius: "12px",
+              width: "400px",
+              maxHeight: "600px",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden"
+            }}
+          >
+            <div style={{
+              padding: "20px",
+              borderBottom: "1px solid #eee",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center"
+            }}>
+              <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "600", color: "#333" }}>
+                Notifications
+              </h3>
+              <button
+                onClick={() => setShowNotifications(false)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  fontSize: "24px",
+                  cursor: "pointer",
+                  color: "#999",
+                  padding: "0",
+                  width: "24px",
+                  height: "24px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center"
+                }}
+              >
+                ×
+              </button>
+            </div>
+            <div style={{
+              flex: 1,
+              overflowY: "auto",
+              padding: "10px"
+            }}>
+              {notifications.length === 0 ? (
+                <div style={{
+                  textAlign: "center",
+                  padding: "40px 20px",
+                  color: "#999"
+                }}>
+                  Aucune notification
+                </div>
+              ) : (
+                notifications.map((notif) => (
+                  <div
+                    key={notif.id}
+                    onClick={() => {
+                      if (!notif.read) {
+                        void markNotificationAsRead(notif.id);
+                      }
+                    }}
+                    style={{
+                      padding: "12px",
+                      marginBottom: "8px",
+                      borderRadius: "8px",
+                      background: notif.read ? "#f9f9f9" : "#e3f2fd",
+                      border: notif.read ? "1px solid #eee" : "1px solid #90caf9",
+                      cursor: "pointer",
+                      transition: "background 0.2s"
+                    }}
+                  >
+                    <div style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                      gap: "10px"
+                    }}>
+                      <div style={{ flex: 1 }}>
+                        <p style={{
+                          margin: 0,
+                          fontSize: "14px",
+                          color: "#333",
+                          lineHeight: "1.5"
+                        }}>
+                          {notif.message}
+                        </p>
+                        <p style={{
+                          margin: "4px 0 0 0",
+                          fontSize: "11px",
+                          color: "#999"
+                        }}>
+                          {new Date(notif.created_at).toLocaleString("fr-FR", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit"
+                          })}
+                        </p>
+                      </div>
+                      {!notif.read && (
+                        <div style={{
+                          width: "8px",
+                          height: "8px",
+                          borderRadius: "50%",
+                          background: "#007bff",
+                          flexShrink: 0,
+                          marginTop: "4px"
+                        }}></div>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>

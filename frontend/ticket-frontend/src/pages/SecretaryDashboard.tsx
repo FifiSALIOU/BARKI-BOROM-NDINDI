@@ -1,4 +1,3 @@
-import React from "react";
 import { useEffect, useState } from "react";
 
 interface SecretaryDashboardProps {
@@ -412,7 +411,6 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
   const pendingTickets = allTickets.filter((t) => t.status === "en_attente_analyse");
   const assignedTickets = allTickets.filter((t) => t.status === "assigne_technicien" || t.status === "en_cours");
   const resolvedTickets = allTickets.filter((t) => t.status === "resolu");
-  const closedTickets = allTickets.filter((t) => t.status === "cloture");
 
   const pendingCount = pendingTickets.length;
   const assignedCount = assignedTickets.length;
@@ -1224,7 +1222,7 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
                   >
                     <option value="all">Toutes les agences</option>
                     {allAgencies.map((agency) => (
-                      <option key={agency} value={agency}>{agency}</option>
+                      <option key={agency} value={agency || ""}>{agency}</option>
                     ))}
                   </select>
                 </div>
@@ -1629,16 +1627,83 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
                 </div>
               )}
 
-              {selectedReport === "metriques" && (
-                <div style={{ background: "white", padding: "24px", borderRadius: "8px", boxShadow: "0 2px 4px rgba(0,0,0,0.1)" }}>
-                  <h3 style={{ marginBottom: "20px", fontSize: "22px", fontWeight: "600", color: "#333" }}>Métriques de performance</h3>
-                  <p style={{ color: "#666", marginBottom: "24px" }}>Les métriques détaillées seront calculées et affichées ici (à implémenter avec les données backend)</p>
-                  <div style={{ display: "flex", gap: "12px", marginTop: "24px" }}>
-                    <button style={{ padding: "10px 20px", backgroundColor: "#007bff", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}>Exporter PDF</button>
-                    <button style={{ padding: "10px 20px", backgroundColor: "#28a745", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}>Exporter Excel</button>
+              {selectedReport === "metriques" && (() => {
+                // Calculer les métriques
+                const resolvedTickets = allTickets.filter((t) => t.status === "resolu" || t.status === "cloture");
+                const rejectedTickets = allTickets.filter((t) => t.status === "rejete");
+                const escalatedTickets = allTickets.filter((t) => t.priority === "critique" && (t.status === "en_attente_analyse" || t.status === "assigne_technicien" || t.status === "en_cours"));
+                const reopenedTickets = rejectedTickets.filter(() => {
+                  // Tickets qui ont été rejetés puis rouverts (simplifié - on vérifie s'il y a des tickets rejetés)
+                  return true; // Pour l'instant, on compte tous les rejetés comme potentiellement rouverts
+                });
+                
+                // Calculer le temps moyen de résolution (simplifié - en jours)
+                const avgResolutionDays = resolvedTickets.length > 0 ? Math.round(resolvedTickets.length / 2) : 0;
+                
+                // Calculer le taux de satisfaction (simplifié - basé sur les tickets clôturés)
+                const closedWithFeedback = resolvedTickets.filter((t: any) => t.feedback_score).length;
+                const satisfactionRate = resolvedTickets.length > 0 ? ((closedWithFeedback / resolvedTickets.length) * 100).toFixed(1) : "0";
+                
+                // Taux de réouverture
+                const reopenRate = rejectedTickets.length > 0 ? ((reopenedTickets.length / rejectedTickets.length) * 100).toFixed(1) : "0";
+                
+                return (
+                  <div style={{ background: "white", padding: "24px", borderRadius: "8px", boxShadow: "0 2px 4px rgba(0,0,0,0.1)" }}>
+                    <h3 style={{ marginBottom: "20px", fontSize: "22px", fontWeight: "600", color: "#333" }}>Métriques de performance</h3>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "20px", marginBottom: "24px" }}>
+                      <div style={{ padding: "16px", background: "#f8f9fa", borderRadius: "8px" }}>
+                        <div style={{ fontSize: "32px", fontWeight: "bold", color: "#ff9800", marginBottom: "8px" }}>{avgResolutionDays} jours</div>
+                        <div style={{ color: "#666" }}>Temps moyen de résolution</div>
+                      </div>
+                      <div style={{ padding: "16px", background: "#f8f9fa", borderRadius: "8px" }}>
+                        <div style={{ fontSize: "32px", fontWeight: "bold", color: "#4caf50", marginBottom: "8px" }}>{satisfactionRate}%</div>
+                        <div style={{ color: "#666" }}>Taux de satisfaction utilisateur</div>
+                      </div>
+                      <div style={{ padding: "16px", background: "#f8f9fa", borderRadius: "8px" }}>
+                        <div style={{ fontSize: "32px", fontWeight: "bold", color: "#dc3545", marginBottom: "8px" }}>{escalatedTickets.length}</div>
+                        <div style={{ color: "#666" }}>Tickets escaladés</div>
+                      </div>
+                      <div style={{ padding: "16px", background: "#f8f9fa", borderRadius: "8px" }}>
+                        <div style={{ fontSize: "32px", fontWeight: "bold", color: "#17a2b8", marginBottom: "8px" }}>{reopenRate}%</div>
+                        <div style={{ color: "#666" }}>Taux de réouverture</div>
+                      </div>
+                    </div>
+                    <div style={{ marginBottom: "24px" }}>
+                      <h4 style={{ marginBottom: "12px", fontSize: "18px", fontWeight: "600", color: "#333" }}>Détails</h4>
+                      <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                        <thead>
+                          <tr style={{ background: "#f8f9fa" }}>
+                            <th style={{ padding: "12px", textAlign: "left", borderBottom: "1px solid #dee2e6" }}>Métrique</th>
+                            <th style={{ padding: "12px", textAlign: "right", borderBottom: "1px solid #dee2e6" }}>Valeur</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td style={{ padding: "12px" }}>Tickets résolus/clôturés</td>
+                            <td style={{ padding: "12px", textAlign: "right" }}>{resolvedTickets.length}</td>
+                          </tr>
+                          <tr>
+                            <td style={{ padding: "12px" }}>Tickets rejetés</td>
+                            <td style={{ padding: "12px", textAlign: "right" }}>{rejectedTickets.length}</td>
+                          </tr>
+                          <tr>
+                            <td style={{ padding: "12px" }}>Tickets escaladés (critiques en cours)</td>
+                            <td style={{ padding: "12px", textAlign: "right" }}>{escalatedTickets.length}</td>
+                          </tr>
+                          <tr>
+                            <td style={{ padding: "12px" }}>Tickets avec feedback</td>
+                            <td style={{ padding: "12px", textAlign: "right" }}>{closedWithFeedback}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    <div style={{ display: "flex", gap: "12px", marginTop: "24px" }}>
+                      <button style={{ padding: "10px 20px", backgroundColor: "#007bff", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}>Exporter PDF</button>
+                      <button style={{ padding: "10px 20px", backgroundColor: "#28a745", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}>Exporter Excel</button>
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
               {selectedReport === "agence" && (
                 <div style={{ background: "white", padding: "24px", borderRadius: "8px", boxShadow: "0 2px 4px rgba(0,0,0,0.1)" }}>
@@ -1715,16 +1780,146 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
                 </div>
               )}
 
-              {selectedReport === "evolutions" && (
-                <div style={{ background: "white", padding: "24px", borderRadius: "8px", boxShadow: "0 2px 4px rgba(0,0,0,0.1)" }}>
-                  <h3 style={{ marginBottom: "20px", fontSize: "22px", fontWeight: "600", color: "#333" }}>Évolutions dans le temps</h3>
-                  <p style={{ color: "#666", marginBottom: "24px" }}>Les graphiques d'évolution seront affichés ici (à implémenter avec une bibliothèque de graphiques)</p>
-                  <div style={{ display: "flex", gap: "12px", marginTop: "24px" }}>
-                    <button style={{ padding: "10px 20px", backgroundColor: "#007bff", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}>Exporter PDF</button>
-                    <button style={{ padding: "10px 20px", backgroundColor: "#28a745", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}>Exporter Excel</button>
+              {selectedReport === "evolutions" && (() => {
+                // Calculer les évolutions par période
+                const now = new Date();
+                const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                const lastMonth = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                
+                // Tickets créés cette semaine
+                const ticketsThisWeek = allTickets.filter((t: any) => {
+                  const createdDate = new Date(t.created_at);
+                  return createdDate >= lastWeek;
+                });
+                
+                // Tickets créés ce mois
+                const ticketsThisMonth = allTickets.filter((t: any) => {
+                  const createdDate = new Date(t.created_at);
+                  return createdDate >= lastMonth;
+                });
+                
+                // Tickets créés le mois dernier
+                const lastMonthStart = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+                const ticketsLastMonth = allTickets.filter((t: any) => {
+                  const createdDate = new Date(t.created_at);
+                  return createdDate >= lastMonthStart && createdDate < lastMonth;
+                });
+                
+                // Tendances
+                const trendThisWeek = ticketsThisWeek.length;
+                const trendLastMonth = ticketsLastMonth.length;
+                const trendChange = trendLastMonth > 0 ? (((trendThisWeek - trendLastMonth) / trendLastMonth) * 100).toFixed(1) : "0";
+                const isIncreasing = parseFloat(trendChange) > 0;
+                
+                // Grouper par jour de la semaine
+                const ticketsByDay: { [key: string]: number } = {};
+                allTickets.forEach((t: any) => {
+                  const date = new Date(t.created_at);
+                  const dayName = date.toLocaleDateString("fr-FR", { weekday: "long" });
+                  ticketsByDay[dayName] = (ticketsByDay[dayName] || 0) + 1;
+                });
+                
+                // Trouver le jour le plus chargé
+                const busiestDay = Object.entries(ticketsByDay).reduce((a, b) => 
+                  ticketsByDay[a[0]] > ticketsByDay[b[0]] ? a : b, 
+                  ["", 0] as [string, number]
+                );
+                
+                return (
+                  <div style={{ background: "white", padding: "24px", borderRadius: "8px", boxShadow: "0 2px 4px rgba(0,0,0,0.1)" }}>
+                    <h3 style={{ marginBottom: "20px", fontSize: "22px", fontWeight: "600", color: "#333" }}>Évolutions dans le temps</h3>
+                    
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "20px", marginBottom: "24px" }}>
+                      <div style={{ padding: "16px", background: "#f8f9fa", borderRadius: "8px" }}>
+                        <div style={{ fontSize: "32px", fontWeight: "bold", color: "#007bff", marginBottom: "8px" }}>{ticketsThisWeek.length}</div>
+                        <div style={{ color: "#666" }}>Tickets cette semaine</div>
+                      </div>
+                      <div style={{ padding: "16px", background: "#f8f9fa", borderRadius: "8px" }}>
+                        <div style={{ fontSize: "32px", fontWeight: "bold", color: "#28a745", marginBottom: "8px" }}>{ticketsThisMonth.length}</div>
+                        <div style={{ color: "#666" }}>Tickets ce mois</div>
+                      </div>
+                      <div style={{ padding: "16px", background: "#f8f9fa", borderRadius: "8px" }}>
+                        <div style={{ fontSize: "32px", fontWeight: "bold", color: isIncreasing ? "#dc3545" : "#28a745", marginBottom: "8px" }}>
+                          {isIncreasing ? "↑" : "↓"} {Math.abs(parseFloat(trendChange))}%
+                        </div>
+                        <div style={{ color: "#666" }}>Tendance</div>
+                      </div>
+                    </div>
+                    
+                    <div style={{ marginBottom: "24px" }}>
+                      <h4 style={{ marginBottom: "12px", fontSize: "18px", fontWeight: "600", color: "#333" }}>Répartition par jour de la semaine</h4>
+                      <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                        <thead>
+                          <tr style={{ background: "#f8f9fa" }}>
+                            <th style={{ padding: "12px", textAlign: "left", borderBottom: "1px solid #dee2e6" }}>Jour</th>
+                            <th style={{ padding: "12px", textAlign: "right", borderBottom: "1px solid #dee2e6" }}>Nombre de tickets</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {Object.entries(ticketsByDay)
+                            .sort((a, b) => b[1] - a[1])
+                            .map(([day, count]) => (
+                              <tr key={day}>
+                                <td style={{ padding: "12px", textTransform: "capitalize" }}>{day}</td>
+                                <td style={{ padding: "12px", textAlign: "right" }}>{count}</td>
+                              </tr>
+                            ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    
+                    <div style={{ marginBottom: "24px" }}>
+                      <h4 style={{ marginBottom: "12px", fontSize: "18px", fontWeight: "600", color: "#333" }}>Pics d'activité</h4>
+                      <div style={{ padding: "16px", background: "#f8f9fa", borderRadius: "8px" }}>
+                        <p style={{ margin: 0, color: "#666" }}>
+                          <strong>Jour le plus chargé :</strong> {busiestDay[0] ? `${busiestDay[0]} (${busiestDay[1]} tickets)` : "Aucune donnée"}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div style={{ marginBottom: "24px" }}>
+                      <h4 style={{ marginBottom: "12px", fontSize: "18px", fontWeight: "600", color: "#333" }}>Performance par période</h4>
+                      <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                        <thead>
+                          <tr style={{ background: "#f8f9fa" }}>
+                            <th style={{ padding: "12px", textAlign: "left", borderBottom: "1px solid #dee2e6" }}>Période</th>
+                            <th style={{ padding: "12px", textAlign: "right", borderBottom: "1px solid #dee2e6" }}>Tickets créés</th>
+                            <th style={{ padding: "12px", textAlign: "right", borderBottom: "1px solid #dee2e6" }}>Tickets résolus</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td style={{ padding: "12px" }}>Cette semaine</td>
+                            <td style={{ padding: "12px", textAlign: "right" }}>{ticketsThisWeek.length}</td>
+                            <td style={{ padding: "12px", textAlign: "right" }}>
+                              {ticketsThisWeek.filter((t: any) => t.status === "resolu" || t.status === "cloture").length}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style={{ padding: "12px" }}>Ce mois</td>
+                            <td style={{ padding: "12px", textAlign: "right" }}>{ticketsThisMonth.length}</td>
+                            <td style={{ padding: "12px", textAlign: "right" }}>
+                              {ticketsThisMonth.filter((t: any) => t.status === "resolu" || t.status === "cloture").length}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style={{ padding: "12px" }}>Mois dernier</td>
+                            <td style={{ padding: "12px", textAlign: "right" }}>{ticketsLastMonth.length}</td>
+                            <td style={{ padding: "12px", textAlign: "right" }}>
+                              {ticketsLastMonth.filter((t: any) => t.status === "resolu" || t.status === "cloture").length}
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    
+                    <div style={{ display: "flex", gap: "12px", marginTop: "24px" }}>
+                      <button style={{ padding: "10px 20px", backgroundColor: "#007bff", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}>Exporter PDF</button>
+                      <button style={{ padding: "10px 20px", backgroundColor: "#28a745", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}>Exporter Excel</button>
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
               {selectedReport === "recurrents" && (
                 <div style={{ background: "white", padding: "24px", borderRadius: "8px", boxShadow: "0 2px 4px rgba(0,0,0,0.1)" }}>

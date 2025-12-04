@@ -399,36 +399,56 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
             alignItems: "center", 
             gap: "12px", 
             padding: "12px", 
-            background: activeSection === "dashboard" ? "rgba(255,255,255,0.1)" : "transparent", 
-            borderRadius: "8px",
             cursor: "pointer"
           }}
         >
-          <div style={{ width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <rect x="4" y="11" width="3" height="7" rx="1.5" fill="none" stroke="white" strokeWidth="1.8" />
-              <rect x="10.5" y="8" width="3" height="10" rx="1.5" fill="none" stroke="white" strokeWidth="1.8" />
-              <rect x="17" y="5" width="3" height="13" rx="1.5" fill="none" stroke="white" strokeWidth="1.8" />
+          <div style={{ 
+            width: "20px", 
+            height: "20px", 
+            display: "flex", 
+            alignItems: "center", 
+            justifyContent: "center"
+          }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <rect x="4" y="11" width="3" height="7" rx="1" fill="white" />
+              <rect x="10.5" y="8" width="3" height="10" rx="1" fill="white" />
+              <rect x="17" y="5" width="3" height="13" rx="1" fill="white" />
             </svg>
           </div>
-          <div>Tableau de Bord</div>
+          <div style={{ 
+            fontSize: "14px", 
+            color: "white"
+          }}>Tableau de Bord</div>
         </div>
         <div 
           onClick={() => setShowCreateModal(true)}
-          style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px", cursor: "pointer" }}
+          style={{ 
+            display: "flex", 
+            alignItems: "center", 
+            gap: "12px", 
+            padding: "12px", 
+            cursor: "pointer"
+          }}
         >
-          <div style={{ width: "24px", height: "24px", borderRadius: "50%", background: "rgba(129,140,248,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="12" r="8" fill="#6366f1" />
-              <path d="M12 9v6M9 12h6" stroke="white" strokeWidth="2" strokeLinecap="round" />
+          <div style={{ 
+            width: "20px", 
+            height: "20px", 
+            display: "flex", 
+            alignItems: "center", 
+            justifyContent: "center"
+          }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M12 5v14M5 12h14" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
             </svg>
           </div>
-          <div>Créer un ticket</div>
+          <div style={{ 
+            fontSize: "14px", 
+            color: "white"
+          }}>Créer un ticket</div>
         </div>
         <div 
           onClick={() => {
             setActiveSection("tickets");
-            // Scroll vers la liste des tickets après un court délai pour laisser le DOM se mettre à jour
             setTimeout(() => {
               ticketsListRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
             }, 100);
@@ -438,19 +458,26 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
             alignItems: "center", 
             gap: "12px", 
             padding: "12px", 
-            background: activeSection === "tickets" ? "rgba(255,255,255,0.1)" : "transparent",
-            borderRadius: "8px",
             cursor: "pointer"
           }}
         >
-          <div style={{ width: "24px", height: "24px", borderRadius: "50%", background: "rgba(148,163,184,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <rect x="7" y="5" width="10" height="14" rx="2" stroke="#e5e7eb" strokeWidth="1.8" />
-              <path d="M10 3h4a1 1 0 0 1 1 1v1H9V4a1 1 0 0 1 1-1z" stroke="#e5e7eb" strokeWidth="1.8" fill="none" />
-              <path d="M10 10h4M10 13h4M10 16h3" stroke="#e5e7eb" strokeWidth="1.5" strokeLinecap="round" />
+          <div style={{ 
+            width: "20px", 
+            height: "20px", 
+            display: "flex", 
+            alignItems: "center", 
+            justifyContent: "center"
+          }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <rect x="7" y="5" width="10" height="14" rx="2" stroke="white" strokeWidth="1.8" fill="none" />
+              <path d="M10 3h4a1 1 0 0 1 1 1v1H9V4a1 1 0 0 1 1-1z" stroke="white" strokeWidth="1.8" fill="none" />
+              <path d="M10 10h4M10 13h4M10 16h3" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
           </div>
-          <div>Mes tickets</div>
+          <div style={{ 
+            fontSize: "14px", 
+            color: "white"
+          }}>Mes tickets</div>
         </div>
       </div>
 
@@ -485,33 +512,57 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
           }}></div>
           <div style={{ 
             cursor: "pointer", 
-            width: "24px", 
-            height: "24px", 
+            width: "28px", 
+            height: "28px", 
             display: "flex", 
             alignItems: "center", 
             justifyContent: "center",
-            color: "white"
-          }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" fill="currentColor"/>
-              <path d="M19 13a2 2 0 0 1-2 2H5l-4 4V3a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" fill="currentColor" opacity="0.6" transform="translate(2, 2)"/>
+            color: "white",
+            borderRadius: "6px",
+            transition: "all 0.2s ease"
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "rgba(255,255,255,0.1)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "transparent";
+          }}
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+              {/* Bulle de conversation arrière (décalée en haut à gauche) */}
+              <rect x="2" y="3" width="10" height="8" rx="1.5" opacity="0.7" />
+              <polygon points="10,11 8.5,12.5 10,12.5" opacity="0.7" />
+              {/* Bulle de conversation principale */}
+              <rect x="4" y="5" width="10" height="8" rx="1.5" />
+              <polygon points="12,13 10.5,14.5 12,14.5" />
             </svg>
           </div>
           <div 
             onClick={() => setShowNotifications(!showNotifications)}
             style={{ 
               cursor: "pointer", 
-              width: "24px", 
-              height: "24px", 
+              width: "28px", 
+              height: "28px", 
               display: "flex", 
               alignItems: "center", 
               justifyContent: "center",
               color: "white",
-              position: "relative"
-            }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" fill="currentColor"/>
-              <path d="M13.73 21a2 2 0 0 1-3.46 0" fill="currentColor"/>
+              position: "relative",
+              borderRadius: "6px",
+              transition: "all 0.2s ease"
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "rgba(255,255,255,0.1)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "transparent";
+            }}
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+              {/* Boucle circulaire en haut */}
+              <circle cx="12" cy="4.5" r="1" />
+              {/* Corps de la cloche (base large arrondie, sommet étroit arrondi) */}
+              <path d="M6 7.5a6 6 0 0 1 12 0c0 6.5 2.5 8.5 2.5 8.5H3.5s2.5-2 2.5-8.5z" />
             </svg>
             {/* Badge de notification */}
             {unreadCount > 0 && (
@@ -819,7 +870,6 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                             ✓ Avis donné ({t.feedback_score}/5)
                           </span>
                         ) : null}
-                        <span style={{ fontSize: "18px", color: "#999", cursor: "pointer" }}>→</span>
                       </div>
                     </td>
                   </tr>
