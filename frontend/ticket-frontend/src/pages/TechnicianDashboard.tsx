@@ -1,4 +1,3 @@
-import React from "react";
 import { useEffect, useState } from "react";
 
 interface Notification {
@@ -66,7 +65,6 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
   const [activeSection, setActiveSection] = useState<string>("dashboard");
   const [availabilityStatus, setAvailabilityStatus] = useState<string>("disponible");
   const [rejectionReasons, setRejectionReasons] = useState<Record<string, string>>({});
-  const [hoveredMotifId, setHoveredMotifId] = useState<string | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState<boolean>(false);
   const [resumedFlags, setResumedFlags] = useState<Record<string, boolean>>({});
 
@@ -154,7 +152,6 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
       });
 
       if (res.ok) {
-        const updatedData = await res.json();
         setAvailabilityStatus(newStatus);
         setUserInfo(prev => prev ? { ...prev, availability_status: newStatus } : null);
         alert("Statut de disponibilité mis à jour avec succès");
@@ -264,81 +261,6 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
     }
   }
 
-  async function handleAcceptAssignment(ticketId: string) {
-    setLoading(true);
-    try {
-      const res = await fetch(`http://localhost:8000/tickets/${ticketId}/accept-assignment`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (res.ok) {
-        const ticketsRes = await fetch("http://localhost:8000/tickets/assigned", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        if (ticketsRes.ok) {
-          const ticketsData = await ticketsRes.json();
-          setAllTickets(ticketsData);
-        }
-        alert("Assignation acceptée");
-      } else {
-        const error = await res.json();
-        alert(`Erreur: ${error.detail || "Impossible d'accepter l'assignation"}`);
-      }
-    } catch (err) {
-      console.error("Erreur acceptation:", err);
-      alert("Erreur lors de l'acceptation");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleRejectAssignment(ticketId: string) {
-    const reason = prompt("Raison du refus (optionnel):");
-    if (reason === null) return; // User cancelled
-
-    setLoading(true);
-    try {
-      const url = new URL(`http://localhost:8000/tickets/${ticketId}/reject-assignment`);
-      if (reason) {
-        url.searchParams.append("reason", reason);
-      }
-      
-      const res = await fetch(url.toString(), {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (res.ok) {
-        const ticketsRes = await fetch("http://localhost:8000/tickets/assigned", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        if (ticketsRes.ok) {
-          const ticketsData = await ticketsRes.json();
-          setAllTickets(ticketsData);
-        }
-        alert("Assignation refusée. Le ticket sera réassigné.");
-      } else {
-        const error = await res.json();
-        alert(`Erreur: ${error.detail || "Impossible de refuser l'assignation"}`);
-      }
-    } catch (err) {
-      console.error("Erreur refus:", err);
-      alert("Erreur lors du refus");
-    } finally {
-      setLoading(false);
-    }
-  }
 
   async function handleTakeCharge(ticketId: string) {
     setLoading(true);
@@ -885,8 +807,8 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                                 borderRadius: "4px",
                                 fontSize: "12px",
                                 fontWeight: "500",
-                                background: t.priority === "critique" ? "#fee2e2" : t.priority === "haute" ? "#fef3c7" : t.priority === "moyenne" ? "#dbeafe" : "#e5e7eb",
-                                color: t.priority === "critique" ? "#991b1b" : t.priority === "haute" ? "#92400e" : t.priority === "moyenne" ? "#1e40af" : "#374151"
+                                background: t.priority === "critique" ? "#fee2e2" : t.priority === "haute" ? "#fef3c7" : t.priority === "moyenne" ? "#dbeafe" : t.priority === "faible" ? "#fee2e2" : "#e5e7eb",
+                                color: t.priority === "critique" ? "#991b1b" : t.priority === "haute" ? "#92400e" : t.priority === "moyenne" ? "#1e40af" : t.priority === "faible" ? "#991b1b" : "#374151"
                               }}>
                                 {t.priority}
                               </span>
@@ -952,8 +874,8 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                                 borderRadius: "4px",
                                 fontSize: "12px",
                                 fontWeight: "500",
-                                background: t.priority === "critique" ? "#fee2e2" : t.priority === "haute" ? "#fef3c7" : t.priority === "moyenne" ? "#dbeafe" : "#e5e7eb",
-                                color: t.priority === "critique" ? "#991b1b" : t.priority === "haute" ? "#92400e" : t.priority === "moyenne" ? "#1e40af" : "#374151"
+                                background: t.priority === "critique" ? "#fee2e2" : t.priority === "haute" ? "#fef3c7" : t.priority === "moyenne" ? "#dbeafe" : t.priority === "faible" ? "#fee2e2" : "#e5e7eb",
+                                color: t.priority === "critique" ? "#991b1b" : t.priority === "haute" ? "#92400e" : t.priority === "moyenne" ? "#1e40af" : t.priority === "faible" ? "#991b1b" : "#374151"
                               }}>
                                 {t.priority}
                               </span>
@@ -1033,7 +955,6 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                         <th style={{ padding: "12px 16px", textAlign: "left", fontWeight: "600", color: "#333" }}>Statut</th>
                         <th style={{ padding: "12px 16px", textAlign: "left", fontWeight: "600", color: "#333" }}>Priorité</th>
                         <th style={{ padding: "12px 16px", textAlign: "left", fontWeight: "600", color: "#333" }}>Type</th>
-                        <th style={{ padding: "12px 16px", textAlign: "left", fontWeight: "600", color: "#333" }}>Motif</th>
                         <th style={{ padding: "12px 16px", textAlign: "left", fontWeight: "600", color: "#333" }}>Assigné le</th>
                         <th style={{ padding: "12px 16px", textAlign: "left", fontWeight: "600", color: "#333" }}>Actions</th>
                       </tr>
@@ -1056,8 +977,8 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                                 borderRadius: "4px",
                                 fontSize: "12px",
                                 fontWeight: "500",
-                                background: t.status === "resolu" ? "#28a745" : "#6c757d",
-                                color: "white",
+                                background: t.status === "resolu" ? "#d4edda" : "#6c757d",
+                                color: t.status === "resolu" ? "#155724" : "white",
                                 whiteSpace: "nowrap",
                                 display: "inline-block"
                               }}>
@@ -1070,8 +991,8 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                                 borderRadius: "4px",
                                 fontSize: "12px",
                                 fontWeight: "500",
-                                background: t.priority === "critique" ? "#fee2e2" : t.priority === "haute" ? "#fef3c7" : t.priority === "moyenne" ? "#dbeafe" : "#e5e7eb",
-                                color: t.priority === "critique" ? "#991b1b" : t.priority === "haute" ? "#92400e" : t.priority === "moyenne" ? "#1e40af" : "#374151"
+                                background: t.priority === "critique" ? "#fee2e2" : t.priority === "haute" ? "#fef3c7" : t.priority === "moyenne" ? "#dbeafe" : t.priority === "faible" ? "#fee2e2" : "#e5e7eb",
+                                color: t.priority === "critique" ? "#991b1b" : t.priority === "haute" ? "#92400e" : t.priority === "moyenne" ? "#1e40af" : t.priority === "faible" ? "#991b1b" : "#374151"
                               }}>
                                 {t.priority}
                               </span>
@@ -1086,48 +1007,6 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                               }}>
                                 {t.type === "materiel" ? "Matériel" : "Applicatif"}
                               </span>
-                            </td>
-                            <td style={{ padding: "12px 16px", color: "#444", position: "relative" }}>
-                              {(() => {
-                                const r = rejectionReasons[t.id];
-                                const full = r ? (r.includes("Motif:") ? r.split("Motif:").pop()?.trim() || "" : r) : "Motif non fourni";
-                                const short = full.length > 60 ? full.slice(0, 60) + "…" : full;
-                                return (
-                                  <div
-                                    onMouseEnter={() => setHoveredMotifId(t.id)}
-                                    onMouseLeave={() => setHoveredMotifId(null)}
-                                    title={full}
-                                    style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
-                                  >
-                                    <span style={{ padding: "4px 8px", borderRadius: "4px", background: "#fff5f5", color: "#991b1b", border: "1px solid #fecaca" }}>
-                                      {short}
-                                    </span>
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#991b1b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                      <circle cx="12" cy="12" r="10"></circle>
-                                      <line x1="12" y1="8" x2="12" y2="12"></line>
-                                      <line x1="12" y1="16" x2="12" y2="16"></line>
-                                    </svg>
-                                    {hoveredMotifId === t.id && (
-                                      <div style={{
-                                        position: "absolute",
-                                        top: "100%",
-                                        left: 0,
-                                        marginTop: "8px",
-                                        background: "#fff5f5",
-                                        color: "#991b1b",
-                                        border: "1px solid #fecaca",
-                                        boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-                                        borderRadius: "6px",
-                                        padding: "10px 12px",
-                                        maxWidth: "480px",
-                                        zIndex: 10
-                                      }}>
-                                        {full}
-                                      </div>
-                                    )}
-                                  </div>
-                                );
-                              })()}
                             </td>
                             <td style={{ padding: "12px 16px", color: "#666" }}>
                               {t.assigned_at ? new Date(t.assigned_at).toLocaleString("fr-FR") : "N/A"}
@@ -1214,8 +1093,8 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                                 borderRadius: "4px",
                                 fontSize: "12px",
                                 fontWeight: "500",
-                                background: t.priority === "critique" ? "#fee2e2" : t.priority === "haute" ? "#fef3c7" : t.priority === "moyenne" ? "#dbeafe" : "#e5e7eb",
-                                color: t.priority === "critique" ? "#991b1b" : t.priority === "haute" ? "#92400e" : t.priority === "moyenne" ? "#1e40af" : "#374151"
+                                background: t.priority === "critique" ? "#fee2e2" : t.priority === "haute" ? "#fef3c7" : t.priority === "moyenne" ? "#dbeafe" : t.priority === "faible" ? "#fee2e2" : "#e5e7eb",
+                                color: t.priority === "critique" ? "#991b1b" : t.priority === "haute" ? "#92400e" : t.priority === "moyenne" ? "#1e40af" : t.priority === "faible" ? "#991b1b" : "#374151"
                               }}>
                                 {t.priority}
                               </span>

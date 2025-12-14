@@ -1057,6 +1057,15 @@ def reopen_ticket(
         reason=f"Ticket réouvert et réassigné. Raison: {assign_data.reason or 'N/A'}"
     )
     db.add(history)
+    if ticket.creator_id:
+        creator_notification = models.Notification(
+            user_id=ticket.creator_id,
+            type=models.NotificationType.TICKET_ASSIGNE,
+            ticket_id=ticket.id,
+            message=f"Le technicien a repris votre ticket #{ticket.number} pour correction: {ticket.title}",
+            read=False
+        )
+        db.add(creator_notification)
     db.commit()
     db.refresh(ticket)
     

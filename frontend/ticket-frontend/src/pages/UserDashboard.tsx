@@ -112,6 +112,7 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
   const [ticketDetails, setTicketDetails] = useState<Ticket | null>(null);
   const [ticketHistory, setTicketHistory] = useState<TicketHistory[]>([]);
   const [resumedFlags, setResumedFlags] = useState<Record<string, boolean>>({});
+  const [confirmDeleteTicket, setConfirmDeleteTicket] = useState<Ticket | null>(null);
   
   // Mettre à jour le token si le prop change
   useEffect(() => {
@@ -457,11 +458,9 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
       setShowCreateModal(false);
       // S'assurer que la section est sur dashboard pour voir les tickets
       setActiveSection("dashboard");
-      // Attendre un peu pour laisser le temps au backend de finaliser
-      await new Promise(resolve => setTimeout(resolve, 500));
-      await loadTickets();
-      await loadNotifications();
-      await loadUnreadCount();
+      void loadTickets();
+      void loadNotifications();
+      void loadUnreadCount();
       alert("Ticket créé avec succès !");
     } catch (err: any) {
       const errorMsg = err.message || "Erreur lors de la création du ticket";
@@ -1127,252 +1126,118 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
           )}
         
         {/* Section Tickets - Style GLPI - Visible seulement sur Dashboard */}
-        {activeSection === "dashboard" && (
+          {activeSection === "dashboard" && (
             <div style={{ 
-              background: "white", 
-              borderRadius: "8px", 
-              boxShadow: "0 2px 4px rgba(0,0,0,0.1)", 
-            padding: "20px",
-            marginBottom: "30px"
-          }}>
-            {/* Header avec titre et bouton */}
-          <div style={{ 
-              display: "flex",
-              justifyContent: "space-between", 
-            alignItems: "center", 
-              marginBottom: "20px",
-              paddingBottom: "15px",
-              borderBottom: "1px solid #e5e7eb"
+              background: "transparent", 
+              borderRadius: "0", 
+              boxShadow: "none", 
+              padding: "20px",
+              marginBottom: "30px"
             }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-                  <line x1="12" y1="9" x2="12" y2="13" />
-                  <line x1="12" y1="17" x2="12.01" y2="17" />
-                </svg>
-                <h3 style={{ fontSize: "18px", fontWeight: "600", color: "#1e293b", margin: 0 }}>Tickets</h3>
-              </div>
-              <button
-                onClick={() => setShowCreateModal(true)}
-                style={{
-                  padding: "8px 16px",
-                background: "#3b82f6",
-            color: "white",
-                  border: "none",
-            borderRadius: "6px",
-                fontSize: "14px",
-                  fontWeight: "500",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  transition: "background 0.2s ease"
-          }}
-          onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "#2563eb";
-          }}
-          onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "#3b82f6";
-                }}
-              >
-                <span>+</span>
-                <span>Créer un ticket</span>
-              </button>
-            </div>
+            {/* Header retiré */}
 
             {/* Liste des statuts */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-              {/* En attente d'analyse */}
-          <div 
-                onClick={() => handleStatusClick("en_attente_analyse")}
-            style={{ 
-              display: "flex", 
-              alignItems: "center", 
-                  justifyContent: "space-between",
-                  padding: "10px",
-              borderRadius: "6px",
-                  cursor: "pointer",
-                  transition: "background 0.2s ease",
-                  background: selectedStatus === "en_attente_analyse" ? "#f3f4f6" : "transparent"
-            }}
-            onMouseEnter={(e) => {
-                  if (selectedStatus !== "en_attente_analyse") {
-                    e.currentTarget.style.background = "#f9fafb";
-                  }
-            }}
-            onMouseLeave={(e) => {
-                  if (selectedStatus !== "en_attente_analyse") {
-              e.currentTarget.style.background = "transparent";
-                  }
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                  <div style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#f59e0b" }}></div>
-                  <span style={{ fontSize: "14px", color: "#374151" }}>En attente d'analyse</span>
-            </div>
-                <span style={{ fontSize: "14px", fontWeight: "600", color: "#1e293b" }}>{statusCounts.en_attente_analyse}</span>
-              </div>
+            <div style={{ 
+              display: "grid", 
+              gridTemplateColumns: "repeat(3, 1fr)", 
+              gap: "12px", 
+              alignItems: "stretch" 
+            }}>
+              {/* (Carte 'En attente d'analyse' retirée) */}
 
-              {/* Assigné au technicien */}
-              <div
-                onClick={() => handleStatusClick("assigne_technicien")}
-                style={{
-                display: "flex",
-                alignItems: "center",
+              {/* En attente d'assignation */}
+              <div 
+                style={{ 
+                  position: "relative",
+                  display: "flex",
+                  alignItems: "center", 
                   justifyContent: "space-between",
-                  padding: "10px",
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                  transition: "background 0.2s ease",
-                  background: selectedStatus === "assigne_technicien" ? "#f3f4f6" : "transparent"
-                }}
-                onMouseEnter={(e) => {
-                  if (selectedStatus !== "assigne_technicien") {
-                    e.currentTarget.style.background = "#f9fafb";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (selectedStatus !== "assigne_technicien") {
-                    e.currentTarget.style.background = "transparent";
-                  }
+                  padding: "14px 16px",
+                  borderRadius: "12px",
+                  background: "#f8fafc",
+                  border: "1px solid #e5e7eb",
+                  minHeight: "64px"
                 }}
               >
+                <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: "6px", background: "#fde68a", borderRadius: "12px 0 0 12px" }}></div>
                 <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                  <div style={{ width: "12px", height: "12px", borderRadius: "50%", border: "2px solid #10b981" }}></div>
-                  <span style={{ fontSize: "14px", color: "#374151" }}>Assigné au technicien</span>
-          </div>
-                <span style={{ fontSize: "14px", fontWeight: "600", color: "#1e293b" }}>{statusCounts.assigne_technicien}</span>
+                  <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#fde68a" }}></div>
+                  <span style={{ fontSize: "15px", color: "#374151" }}>En attente d'assignation</span>
+                </div>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: "10px" }}>
+                  <span style={{ fontSize: "20px", fontWeight: "700", color: "#0f172a" }}>
+                    {statusCounts.en_attente_analyse}
+                  </span>
+                  <div style={{ width: "28px", height: "28px", borderRadius: "8px", backgroundColor: "#fff7ed", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 7h18v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" />
+                      <path d="M3 7l3-4h12l3 4" />
+                    </svg>
+                  </div>
+                </div>
               </div>
 
               {/* En cours */}
               <div 
-                onClick={() => handleStatusClick("en_cours")}
-                  style={{
-            display: "flex", 
-            alignItems: "center", 
+                style={{
+                  position: "relative",
+                  display: "flex", 
+                  alignItems: "center", 
                   justifyContent: "space-between",
-                  padding: "10px",
-                  borderRadius: "6px",
-                    cursor: "pointer",
-                  transition: "background 0.2s ease",
-                  background: selectedStatus === "en_cours" ? "#f3f4f6" : "transparent"
-                }}
-                onMouseEnter={(e) => {
-                  if (selectedStatus !== "en_cours") {
-                    e.currentTarget.style.background = "#f9fafb";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (selectedStatus !== "en_cours") {
-                    e.currentTarget.style.background = "transparent";
-                  }
+                  padding: "14px 16px",
+                  borderRadius: "12px",
+                  background: "#f8fafc",
+                  border: "1px solid #e5e7eb",
+                  minHeight: "64px"
                 }}
               >
+                <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: "6px", background: "#fdba74", borderRadius: "12px 0 0 12px" }}></div>
                 <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                    <line x1="16" y1="2" x2="16" y2="6" />
-                    <line x1="8" y1="2" x2="8" y2="6" />
-                    <line x1="3" y1="10" x2="21" y2="10" />
-                  </svg>
-                  <span style={{ fontSize: "14px", color: "#374151" }}>En cours</span>
+                  <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#fdba74" }}></div>
+                  <span style={{ fontSize: "15px", color: "#374151" }}>En cours</span>
                 </div>
-                <span style={{ fontSize: "14px", fontWeight: "600", color: "#1e293b" }}>{statusCounts.en_cours}</span>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: "10px" }}>
+                  <span style={{ fontSize: "20px", fontWeight: "700", color: "#0f172a" }}>{statusCounts.en_cours}</span>
+                  <div style={{ width: "28px", height: "28px", borderRadius: "8px", backgroundColor: "#fff7ed", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10" />
+                      <path d="M12 6v6l4 2" />
+                    </svg>
+                  </div>
+                </div>
               </div>
 
               {/* Résolu */}
               <div 
-                onClick={() => handleStatusClick("resolu")}
                 style={{ 
-                display: "flex",
-                alignItems: "center",
+                  position: "relative",
+                  display: "flex",
+                  alignItems: "center",
                   justifyContent: "space-between",
-                  padding: "10px",
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                  transition: "background 0.2s ease",
-                  background: selectedStatus === "resolu" ? "#f3f4f6" : "transparent"
-                }}
-                onMouseEnter={(e) => {
-                  if (selectedStatus !== "resolu") {
-                    e.currentTarget.style.background = "#f9fafb";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (selectedStatus !== "resolu") {
-                    e.currentTarget.style.background = "transparent";
-                  }
+                  padding: "14px 16px",
+                  borderRadius: "12px",
+                  background: "#f8fafc",
+                  border: "1px solid #e5e7eb",
+                  minHeight: "64px"
                 }}
               >
+                <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: "6px", background: "#a7f3d0", borderRadius: "12px 0 0 12px" }}></div>
                 <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                  <div style={{ width: "12px", height: "12px", borderRadius: "50%", border: "2px solid #6b7280" }}></div>
-                  <span style={{ fontSize: "14px", color: "#374151" }}>Résolu</span>
-              </div>
-                <span style={{ fontSize: "14px", fontWeight: "600", color: "#1e293b" }}>{statusCounts.resolu}</span>
-            </div>
-
-              {/* Rejeté */}
-              <div
-                onClick={() => handleStatusClick("rejete")}
-                style={{
-                  display: "flex", 
-                  alignItems: "center", 
-                  justifyContent: "space-between",
-                  padding: "10px",
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                  transition: "background 0.2s ease",
-                  background: selectedStatus === "rejete" ? "#f3f4f6" : "transparent"
-                }}
-                onMouseEnter={(e) => {
-                  if (selectedStatus !== "rejete") {
-                    e.currentTarget.style.background = "#f9fafb";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (selectedStatus !== "rejete") {
-                    e.currentTarget.style.background = "transparent";
-                  }
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                  <div style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#ef4444" }}></div>
-                  <span style={{ fontSize: "14px", color: "#374151" }}>Rejeté</span>
+                  <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#a7f3d0" }}></div>
+                  <span style={{ fontSize: "15px", color: "#374151" }}>Résolu</span>
                 </div>
-                <span style={{ fontSize: "14px", fontWeight: "600", color: "#1e293b" }}>{statusCounts.rejete}</span>
-        </div>
-
-              {/* Clôturé */}
-              <div 
-                onClick={() => handleStatusClick("cloture")}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                  justifyContent: "space-between",
-                  padding: "10px",
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                  transition: "background 0.2s ease",
-                  background: selectedStatus === "cloture" ? "#f3f4f6" : "transparent"
-                }}
-                onMouseEnter={(e) => {
-                  if (selectedStatus !== "cloture") {
-                    e.currentTarget.style.background = "#f9fafb";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (selectedStatus !== "cloture") {
-                    e.currentTarget.style.background = "transparent";
-                  }
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                  <div style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#6b7280" }}></div>
-                  <span style={{ fontSize: "14px", color: "#374151" }}>Clôturé</span>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: "10px" }}>
+                  <span style={{ fontSize: "20px", fontWeight: "700", color: "#0f172a" }}>{statusCounts.resolu}</span>
+                  <div style={{ width: "28px", height: "28px", borderRadius: "8px", backgroundColor: "#ecfdf5", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20 6L9 17l-5-5" />
+                    </svg>
+                  </div>
+                </div>
               </div>
-                <span style={{ fontSize: "14px", fontWeight: "600", color: "#1e293b" }}>{statusCounts.cloture}</span>
-          </div>
-        </div>
+
+              {/* (Cartes supplémentaires supprimées) */}
+            </div>
             </div>
           )}
         
@@ -1662,8 +1527,8 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                             borderRadius: "12px",
                             fontSize: "12px",
                             fontWeight: "500",
-                            background: t.status === "en_attente_analyse" ? "#fef3c7" : t.status === "assigne_technicien" ? "#dbeafe" : t.status === "en_cours" ? "#fed7aa" : t.status === "resolu" ? "#e5e7eb" : t.status === "rejete" ? "#fee2e2" : "#e5e7eb",
-                            color: t.status === "en_attente_analyse" ? "#92400e" : t.status === "assigne_technicien" ? "#1e40af" : t.status === "en_cours" ? "#9a3412" : t.status === "resolu" ? "#374151" : t.status === "rejete" ? "#991b1b" : "#374151",
+                            background: t.status === "en_attente_analyse" ? "#fef3c7" : t.status === "assigne_technicien" ? "#dbeafe" : t.status === "en_cours" ? "#fed7aa" : t.status === "resolu" ? "#d4edda" : t.status === "rejete" ? "#fee2e2" : "#e5e7eb",
+                            color: t.status === "en_attente_analyse" ? "#92400e" : t.status === "assigne_technicien" ? "#1e40af" : t.status === "en_cours" ? "#9a3412" : t.status === "resolu" ? "#155724" : t.status === "rejete" ? "#991b1b" : "#374151",
                             display: "inline-flex",
                             alignItems: "center",
                             gap: "6px"
@@ -1688,8 +1553,8 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                             borderRadius: "12px",
                             fontSize: "12px",
                             fontWeight: "500",
-                            background: t.priority === "critique" ? "#fee2e2" : t.priority === "haute" ? "#fef3c7" : t.priority === "moyenne" ? "#dbeafe" : "#e5e7eb",
-                            color: t.priority === "critique" ? "#991b1b" : t.priority === "haute" ? "#92400e" : t.priority === "moyenne" ? "#1e40af" : "#374151"
+                            background: t.priority === "critique" ? "#fee2e2" : t.priority === "haute" ? "#fef3c7" : t.priority === "moyenne" ? "#dbeafe" : t.priority === "faible" ? "#fee2e2" : "#e5e7eb",
+                            color: t.priority === "critique" ? "#991b1b" : t.priority === "haute" ? "#92400e" : t.priority === "moyenne" ? "#1e40af" : t.priority === "faible" ? "#991b1b" : "#374151"
                           }}>
                             {t.priority}
                           </span>
@@ -1758,21 +1623,6 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
               <h3 style={{ fontSize: "24px", fontWeight: "700", color: "#333" }}>
                 {activeSection === "dashboard" ? "Mes Tickets Récents" : "Mes Tickets"}
               </h3>
-              <div
-                onClick={() => setShowCreateModal(true)}
-                style={{
-                  cursor: "pointer",
-                  fontSize: "14px",
-                  fontWeight: "500",
-                  color: "#333",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "4px"
-                }}
-              >
-                <span style={{ fontSize: "18px", fontWeight: "600" }}>+</span>
-                <span>Créer un nouveau Ticket</span>
-              </div>
             </div>
             {/* Tickets Table */}
             <div style={{ background: "white", borderRadius: "12px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)", overflow: "hidden" }}>
@@ -1808,8 +1658,8 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                         borderRadius: "20px",
                         fontSize: "12px",
                         fontWeight: "500",
-                        background: t.status === "en_attente_analyse" ? "#fef3c7" : t.status === "assigne_technicien" ? "#dbeafe" : t.status === "en_cours" ? "#fed7aa" : t.status === "resolu" ? "#e5e7eb" : t.status === "rejete" ? "#fee2e2" : t.status === "cloture" ? "#e5e7eb" : "#e5e7eb",
-                        color: t.status === "en_attente_analyse" ? "#92400e" : t.status === "assigne_technicien" ? "#1e40af" : t.status === "en_cours" ? "#9a3412" : t.status === "resolu" ? "#374151" : t.status === "rejete" ? "#991b1b" : t.status === "cloture" ? "#374151" : "#374151",
+                        background: t.status === "en_attente_analyse" ? "#fef3c7" : t.status === "assigne_technicien" ? "#dbeafe" : t.status === "en_cours" ? "#fed7aa" : t.status === "resolu" ? "#d4edda" : t.status === "rejete" ? "#fee2e2" : t.status === "cloture" ? "#e5e7eb" : "#e5e7eb",
+                        color: t.status === "en_attente_analyse" ? "#92400e" : t.status === "assigne_technicien" ? "#1e40af" : t.status === "en_cours" ? "#9a3412" : t.status === "resolu" ? "#155724" : t.status === "rejete" ? "#991b1b" : t.status === "cloture" ? "#374151" : "#374151",
                         whiteSpace: "nowrap",
                         display: "inline-block"
                       }}>
@@ -1827,8 +1677,8 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                         borderRadius: "20px",
                         fontSize: "12px",
                         fontWeight: "500",
-                        background: t.priority === "critique" ? "#fee2e2" : t.priority === "haute" ? "#fef3c7" : t.priority === "moyenne" ? "#dbeafe" : "#e5e7eb",
-                        color: t.priority === "critique" ? "#991b1b" : t.priority === "haute" ? "#92400e" : t.priority === "moyenne" ? "#1e40af" : "#374151"
+                        background: t.priority === "critique" ? "#fee2e2" : t.priority === "haute" ? "#fef3c7" : t.priority === "moyenne" ? "#dbeafe" : t.priority === "faible" ? "#fee2e2" : "#e5e7eb",
+                        color: t.priority === "critique" ? "#991b1b" : t.priority === "haute" ? "#92400e" : t.priority === "moyenne" ? "#1e40af" : t.priority === "faible" ? "#991b1b" : "#374151"
                       }}>
                         {t.priority}
                       </span>
@@ -1843,39 +1693,83 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                           disabled={loading}
                           title="Voir détails"
                           aria-label="Voir détails"
-                          style={{ width: 28, height: 28, display: "inline-flex", alignItems: "center", justifyContent: "center", backgroundColor: "#f8fafc", border: "1px solid #e5e7eb", borderRadius: 6, cursor: "pointer" }}
+                          style={{
+                            width: 28,
+                            height: 28,
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            backgroundColor: "transparent",
+                            border: "1px solid #475569",
+                            borderRadius: 6,
+                            cursor: "pointer",
+                            color: "#475569",
+                            backgroundImage:
+                              'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\'><path d=\'M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z\' stroke=\'%23475569\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'/><circle cx=\'12\' cy=\'12\' r=\'3\' fill=\'none\' stroke=\'%23475569\' stroke-width=\'2\'/></svg>")',
+                            backgroundRepeat: "no-repeat",
+                            backgroundPosition: "center",
+                            backgroundSize: "18px 18px"
+                          }}
                         >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
-                            <circle cx="12" cy="12" r="3" />
-                          </svg>
+                          {/* icon as background image */}
                         </button>
                         <button
                           onClick={(e) => { e.stopPropagation(); openEditModal(t); }}
                           disabled={loading}
                           title="Modifier"
                           aria-label="Modifier"
-                          style={{ width: 28, height: 28, display: "inline-flex", alignItems: "center", justifyContent: "center", backgroundColor: "#f8fafc", border: "1px solid #e5e7eb", borderRadius: 6, cursor: "pointer" }}
+                          style={{
+                            width: 28,
+                            height: 28,
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            backgroundColor: "transparent",
+                            border: "1px solid #1d4ed8",
+                            borderRadius: 6,
+                            cursor: "pointer",
+                            color: "#1d4ed8",
+                            backgroundImage:
+                              "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%231d4ed8' d='M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z'/><path fill='%231d4ed8' d='M20.71 7.04a1 1 0 0 0 0-1.41L18.37 3.29a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z'/></svg>\")",
+                            backgroundRepeat: "no-repeat",
+                            backgroundPosition: "center",
+                            backgroundSize: "18px 18px"
+                          }}
                         >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M12 20h9" />
-                            <path d="M16.5 3.5l4 4L7 21H3v-4L16.5 3.5z" />
-                          </svg>
+                          {/* icon as background image */}
                         </button>
                         <button
-                          onClick={(e) => { e.stopPropagation(); handleDelete(t); }}
                           disabled={loading}
                           title="Supprimer"
                           aria-label="Supprimer"
-                          style={{ width: 28, height: 28, display: "inline-flex", alignItems: "center", justifyContent: "center", backgroundColor: "#f8fafc", border: "1px solid #e5e7eb", borderRadius: 6, cursor: loading ? "not-allowed" : "pointer" }}
+                          style={{
+                            width: 28,
+                            height: 28,
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            backgroundColor: "transparent",
+                            border: "1px solid #b91c1c",
+                            borderRadius: 6,
+                            cursor: loading ? "not-allowed" : "pointer",
+                            color: "#b91c1c",
+                            backgroundImage:
+                              "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%23b91c1c' d='M6 7h12l-1 12H7L6 7z'/><path fill='%23b91c1c' d='M9 7V5h6v2'/><rect x='9' y='10' width='2' height='6' fill='%23b91c1c'/><rect x='13' y='10' width='2' height='6' fill='%23b91c1c'/></svg>\")",
+                            backgroundRepeat: "no-repeat",
+                            backgroundPosition: "center",
+                            backgroundSize: "18px 18px"
+                          }}
+                          onClick={(e) => { 
+                            e.stopPropagation(); 
+                            if (loading) return;
+                            if (t.status === "assigne_technicien" || t.status === "en_cours") {
+                              alert("Le ticket est déjà en cours de traitement");
+                              return;
+                            }
+                            setConfirmDeleteTicket(t);
+                          }}
                         >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="3 6 5 6 21 6" />
-                            <path d="M19 6l-1 14H6L5 6" />
-                            <path d="M10 11v6" />
-                            <path d="M14 11v6" />
-                            <path d="M9 6V4h6v2" />
-                          </svg>
+                          {/* icon as background image */}
                         </button>
                         {t.status === "resolu" ? (
                           <div style={{ display: "flex", gap: "4px" }}>
@@ -1904,14 +1798,6 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                               Rejeter
                             </button>
                           </div>
-                        ) : t.status === "cloture" && !t.feedback_score ? (
-                          <button
-                            onClick={(e) => { e.stopPropagation(); setFeedbackTicket(t.id); }}
-                            disabled={loading}
-                            style={{ fontSize: "11px", padding: "4px 8px", backgroundColor: "#17a2b8", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}
-                          >
-                            Donner mon avis
-                          </button>
                         ) : t.status === "cloture" && t.feedback_score ? (
                           <span style={{ color: "#28a745", fontSize: "12px" }}>
                             ✓ Avis donné ({t.feedback_score}/5)
@@ -2242,6 +2128,36 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {confirmDeleteTicket && (
+          <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
+            <div style={{ background: "white", padding: "24px", borderRadius: "12px", maxWidth: "420px", width: "90%" }}>
+              <h3 style={{ fontSize: "18px", fontWeight: "700", color: "#1f2937", marginBottom: "12px" }}>Êtes-vous sûr ?</h3>
+              <p style={{ color: "#4b5563", marginBottom: "16px" }}>
+                Cette action supprimera définitivement le ticket #{confirmDeleteTicket.number}. 
+              </p>
+              <div style={{ display: "flex", gap: "12px" }}>
+                <button 
+                  type="button" 
+                  onClick={() => setConfirmDeleteTicket(null)} 
+                  style={{ flex: 1, padding: "10px 16px", backgroundColor: "#f3f4f6", border: "1px solid #e5e7eb", borderRadius: "6px", cursor: "pointer", fontSize: "14px", color: "#111827" }}
+                >
+                  Annuler
+                </button>
+                <button 
+                  type="button" 
+                  onClick={async () => { 
+                    await handleDelete(confirmDeleteTicket); 
+                    setConfirmDeleteTicket(null); 
+                  }} 
+                  style={{ flex: 1, padding: "10px 16px", backgroundColor: "#ef4444", border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "14px", color: "white" }}
+                >
+                  Oui
+                </button>
+              </div>
             </div>
           </div>
         )}

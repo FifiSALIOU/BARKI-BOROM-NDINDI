@@ -317,16 +317,19 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
       });
 
       if (res.ok) {
-        // Recharger les tickets
-        const ticketsRes = await fetch("http://localhost:8000/tickets/", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        if (ticketsRes.ok) {
-          const ticketsData = await ticketsRes.json();
-          setAllTickets(ticketsData);
-        }
+        const updated = await res.json();
+        setAllTickets(prev => prev.map(t => t.id === updated.id ? updated : t));
+        void (async () => {
+          try {
+            const ticketsRes = await fetch("http://localhost:8000/tickets/", {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            if (ticketsRes.ok) {
+              const ticketsData = await ticketsRes.json();
+              setAllTickets(ticketsData);
+            }
+          } catch {}
+        })();
         setSelectedTicket(null);
         setSelectedTechnician("");
         setAssignmentNotes("");
@@ -1139,8 +1142,8 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
                     borderRadius: "4px",
                     fontSize: "12px",
                     fontWeight: "500",
-                    background: t.priority === "critique" ? "#f44336" : t.priority === "haute" ? "#ff9800" : t.priority === "moyenne" ? "#ffc107" : "#9e9e9e",
-                    color: "white"
+                    background: t.priority === "critique" ? "#f44336" : t.priority === "haute" ? "#ff9800" : t.priority === "moyenne" ? "#ffc107" : t.priority === "faible" ? "#fee2e2" : "#9e9e9e",
+                    color: t.priority === "faible" ? "#991b1b" : "white"
                   }}>
                     {t.priority}
                   </span>
@@ -1154,10 +1157,10 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
                     background: t.status === "en_attente_analyse" ? "#ffc107" : 
                                t.status === "assigne_technicien" ? "#007bff" : 
                                t.status === "en_cours" ? "#ff9800" : 
-                               t.status === "resolu" ? "#28a745" : 
+                               t.status === "resolu" ? "#d4edda" : 
                                t.status === "cloture" ? "#6c757d" :
                                t.status === "rejete" ? "#dc3545" : "#e0e0e0",
-                    color: "white",
+                    color: t.status === "resolu" ? "#155724" : "white",
                     whiteSpace: "nowrap",
                     display: "inline-block"
                   }}>
@@ -1867,8 +1870,8 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
                   borderRadius: "4px",
                   fontSize: "12px",
                   fontWeight: "500",
-                  background: ticketDetails.priority === "critique" ? "#f44336" : ticketDetails.priority === "haute" ? "#ff9800" : ticketDetails.priority === "moyenne" ? "#ffc107" : "#9e9e9e",
-                  color: "white"
+                  background: ticketDetails.priority === "critique" ? "#f44336" : ticketDetails.priority === "haute" ? "#ff9800" : ticketDetails.priority === "moyenne" ? "#ffc107" : ticketDetails.priority === "faible" ? "#fee2e2" : "#9e9e9e",
+                  color: ticketDetails.priority === "faible" ? "#991b1b" : "white"
                 }}>
                   {ticketDetails.priority}
                 </span>
@@ -2693,9 +2696,11 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
                 // Calculer le temps moyen de résolution (simplifié - en jours)
                 const avgResolutionDays = resolvedTickets.length > 0 ? Math.round(resolvedTickets.length / 2) : 0;
                 
-                // Calculer le taux de satisfaction (simplifié - basé sur les tickets clôturés)
-                const closedWithFeedback = resolvedTickets.filter((t: any) => t.feedback_score).length;
-                const satisfactionRate = resolvedTickets.length > 0 ? ((closedWithFeedback / resolvedTickets.length) * 100).toFixed(1) : "0";
+                // Calculer le taux de satisfaction implicite (sans avis utilisateur)
+                const resolvedCount = resolvedTickets.length;
+                const rejectedCount = rejectedTickets.length;
+                const baseDenominator = resolvedCount + rejectedCount;
+                const satisfactionRate = baseDenominator > 0 ? ((resolvedCount / baseDenominator) * 100).toFixed(1) : "0";
                 
                 // Taux de réouverture
                 const reopenRate = rejectedTickets.length > 0 ? ((reopenedTickets.length / rejectedTickets.length) * 100).toFixed(1) : "0";
@@ -2744,8 +2749,8 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
                             <td style={{ padding: "12px", textAlign: "right" }}>{escalatedTickets.length}</td>
                           </tr>
                           <tr>
-                            <td style={{ padding: "12px" }}>Tickets avec feedback</td>
-                            <td style={{ padding: "12px", textAlign: "right" }}>{closedWithFeedback}</td>
+                            <td style={{ padding: "12px" }}>Tickets satisfaisants (implicite)</td>
+                            <td style={{ padding: "12px", textAlign: "right" }}>{resolvedTickets.length}</td>
                           </tr>
                         </tbody>
                       </table>
@@ -2775,12 +2780,16 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
                       <tbody>
                         {Array.from(new Set(allTickets.map((t) => t.creator?.agency || t.user_agency).filter(Boolean))).map((agency) => {
                           const agencyTickets = allTickets.filter((t) => (t.creator?.agency || t.user_agency) === agency);
+                          const agencyResolved = agencyTickets.filter((t) => t.status === "resolu" || t.status === "cloture").length;
+                          const agencyRejected = agencyTickets.filter((t) => t.status === "rejete").length;
+                          const agencyDenominator = agencyResolved + agencyRejected;
+                          const agencySatisfaction = agencyDenominator > 0 ? ((agencyResolved / agencyDenominator) * 100).toFixed(1) : "0";
                           return (
                             <tr key={agency}>
                               <td style={{ padding: "12px" }}>{agency}</td>
                               <td style={{ padding: "12px", textAlign: "right" }}>{agencyTickets.length}</td>
                               <td style={{ padding: "12px", textAlign: "right" }}>N/A</td>
-                              <td style={{ padding: "12px", textAlign: "right" }}>N/A</td>
+                              <td style={{ padding: "12px", textAlign: "right" }}>{agencySatisfaction}%</td>
                             </tr>
                           );
                         })}
@@ -2813,13 +2822,17 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
                         {technicians.map((tech) => {
                           const techTickets = allTickets.filter((t) => t.technician_id === tech.id);
                           const inProgress = techTickets.filter((t) => t.status === "assigne_technicien" || t.status === "en_cours").length;
+                          const techResolved = techTickets.filter((t) => t.status === "resolu" || t.status === "cloture").length;
+                          const techRejected = techTickets.filter((t) => t.status === "rejete").length;
+                          const techDenominator = techResolved + techRejected;
+                          const techSatisfaction = techDenominator > 0 ? ((techResolved / techDenominator) * 100).toFixed(1) : "0";
                           return (
                             <tr key={tech.id}>
                               <td style={{ padding: "12px" }}>{tech.full_name}</td>
-                              <td style={{ padding: "12px", textAlign: "right" }}>{techTickets.filter((t) => t.status === "resolu" || t.status === "cloture").length}</td>
+                              <td style={{ padding: "12px", textAlign: "right" }}>{techResolved}</td>
                               <td style={{ padding: "12px", textAlign: "right" }}>N/A</td>
                               <td style={{ padding: "12px", textAlign: "right" }}>{inProgress}</td>
-                              <td style={{ padding: "12px", textAlign: "right" }}>N/A</td>
+                              <td style={{ padding: "12px", textAlign: "right" }}>{techSatisfaction}%</td>
                             </tr>
                           );
                         })}
@@ -3020,8 +3033,10 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
                     const escalatedTickets = allTickets.filter((t) => t.priority === "critique" && (t.status === "en_attente_analyse" || t.status === "assigne_technicien" || t.status === "en_cours"));
                     const reopenedTickets = rejectedTickets.filter(() => true);
                     const avgResolutionDays = resolvedTickets.length > 0 ? Math.round(resolvedTickets.length / 2) : 0;
-                    const closedWithFeedback = resolvedTickets.filter((t: any) => t.feedback_score).length;
-                    const satisfactionRate = resolvedTickets.length > 0 ? ((closedWithFeedback / resolvedTickets.length) * 100).toFixed(1) : "0";
+                    const resolvedCount = resolvedTickets.length;
+                    const rejectedCount = rejectedTickets.length;
+                    const baseDenominator = resolvedCount + rejectedCount;
+                    const satisfactionRate = baseDenominator > 0 ? ((resolvedCount / baseDenominator) * 100).toFixed(1) : "0";
                     const reopenRate = rejectedTickets.length > 0 ? ((reopenedTickets.length / rejectedTickets.length) * 100).toFixed(1) : "0";
                     
                     return (

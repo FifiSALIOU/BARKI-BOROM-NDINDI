@@ -190,9 +190,9 @@ function DSIDashboard({ token }: DSIDashboardProps) {
       return "en pause";
     }
     
-    // PRIORITÉ 2 : Si on est en dehors des heures de travail, utiliser le statut manuel
+    // PRIORITÉ 2 : Si on est en dehors des heures de travail, forcer "indisponible"
     if (!isInWorkTime) {
-      return tech.availability_status || "disponible";
+      return "indisponible";
     }
     
     // PRIORITÉ 3 : Si on est dans les heures de travail, utiliser le statut manuel du technicien
@@ -220,7 +220,7 @@ function DSIDashboard({ token }: DSIDashboardProps) {
   const [metrics, setMetrics] = useState({
     openTickets: 0,
     avgResolutionTime: "0 jours",
-    userSatisfaction: "0/5",
+    userSatisfaction: "0%",
   });
   const [activeSection, setActiveSection] = useState<string>("dashboard");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -1131,18 +1131,18 @@ function DSIDashboard({ token }: DSIDashboardProps) {
             
             const avgResolutionDays = resolvedCount > 0 ? Math.round(totalResolutionTime / resolvedCount) : 0;
             
-            // Calculer la satisfaction moyenne (si disponible)
-            const ticketsWithFeedback = allTickets.filter(t => t.feedback_score !== null && t.feedback_score !== undefined);
-            const totalFeedback = ticketsWithFeedback.reduce((sum, t) => sum + (t.feedback_score || 0), 0);
-            const avgSatisfaction = ticketsWithFeedback.length > 0 
-              ? (totalFeedback / ticketsWithFeedback.length).toFixed(1) 
-              : "0";
+            // Calculer la satisfaction implicite en pourcentage
+            const rejectedTickets = allTickets.filter(t => t.status === "rejete");
+            const resolvedCountPct = resolvedTickets.length;
+            const rejectedCountPct = rejectedTickets.length;
+            const denomPct = resolvedCountPct + rejectedCountPct;
+            const satisfactionPct = denomPct > 0 ? ((resolvedCountPct / denomPct) * 100).toFixed(1) : "0";
             
             // Mettre à jour les métriques (en conservant openTickets déjà calculé)
             setMetrics(prev => ({
               ...prev,
               avgResolutionTime: `${avgResolutionDays} jours`,
-              userSatisfaction: `${avgSatisfaction}/5`,
+              userSatisfaction: `${satisfactionPct}%`,
             }));
           }
         } catch (err) {
@@ -2520,8 +2520,8 @@ function DSIDashboard({ token }: DSIDashboardProps) {
                     borderRadius: "20px",
                     fontSize: "12px",
                     fontWeight: "500",
-                    background: t.priority === "critique" ? "#fee2e2" : t.priority === "haute" ? "#fef3c7" : t.priority === "moyenne" ? "#dbeafe" : "#e5e7eb",
-                    color: t.priority === "critique" ? "#991b1b" : t.priority === "haute" ? "#92400e" : t.priority === "moyenne" ? "#1e40af" : "#374151"
+                    background: t.priority === "critique" ? "#fee2e2" : t.priority === "haute" ? "#fef3c7" : t.priority === "moyenne" ? "#dbeafe" : t.priority === "faible" ? "#fee2e2" : "#e5e7eb",
+                    color: t.priority === "critique" ? "#991b1b" : t.priority === "haute" ? "#92400e" : t.priority === "moyenne" ? "#1e40af" : t.priority === "faible" ? "#991b1b" : "#374151"
                   }}>
                     {t.priority}
                   </span>
@@ -2535,13 +2535,13 @@ function DSIDashboard({ token }: DSIDashboardProps) {
                     background: t.status === "en_attente_analyse" ? "#fef3c7" : 
                                t.status === "assigne_technicien" ? "#dbeafe" : 
                                t.status === "en_cours" ? "#fed7aa" : 
-                               t.status === "resolu" ? "#e5e7eb" : 
+                               t.status === "resolu" ? "#d4edda" : 
                                t.status === "cloture" ? "#e5e7eb" :
                                t.status === "rejete" ? "#fee2e2" : "#e5e7eb",
                     color: t.status === "en_attente_analyse" ? "#92400e" : 
                            t.status === "assigne_technicien" ? "#1e40af" : 
                            t.status === "en_cours" ? "#9a3412" : 
-                           t.status === "resolu" ? "#374151" : 
+                           t.status === "resolu" ? "#155724" : 
                            t.status === "cloture" ? "#374151" :
                            t.status === "rejete" ? "#991b1b" : "#374151",
                     whiteSpace: "nowrap",
@@ -2776,8 +2776,8 @@ function DSIDashboard({ token }: DSIDashboardProps) {
                             borderRadius: "20px",
                             fontSize: "12px",
                             fontWeight: "500",
-                            background: t.priority === "critique" ? "#fee2e2" : t.priority === "haute" ? "#fef3c7" : t.priority === "moyenne" ? "#dbeafe" : "#e5e7eb",
-                            color: t.priority === "critique" ? "#991b1b" : t.priority === "haute" ? "#92400e" : t.priority === "moyenne" ? "#1e40af" : "#374151"
+                            background: t.priority === "critique" ? "#fee2e2" : t.priority === "haute" ? "#fef3c7" : t.priority === "moyenne" ? "#dbeafe" : t.priority === "faible" ? "#fee2e2" : "#e5e7eb",
+                            color: t.priority === "critique" ? "#991b1b" : t.priority === "haute" ? "#92400e" : t.priority === "moyenne" ? "#1e40af" : t.priority === "faible" ? "#991b1b" : "#374151"
                           }}>
                             {t.priority}
                           </span>
@@ -3111,13 +3111,12 @@ function DSIDashboard({ token }: DSIDashboardProps) {
                 const avgResolutionDays = countWithDates > 0 ? Math.round(totalResolutionTime / countWithDates) : 0;
                 const avgResolutionTimeDisplay = avgResolutionDays === 0 ? "0 jours" : `${avgResolutionDays} jour${avgResolutionDays > 1 ? 's' : ''}`;
                 
-                // Calculer la satisfaction moyenne réelle
-                const ticketsWithFeedback = allTickets.filter(t => t.feedback_score !== null && t.feedback_score !== undefined);
-                const totalFeedback = ticketsWithFeedback.reduce((sum, t) => sum + (t.feedback_score || 0), 0);
-                const avgSatisfaction = ticketsWithFeedback.length > 0 
-                  ? (totalFeedback / ticketsWithFeedback.length).toFixed(1) 
-                  : "0";
-                const satisfactionDisplay = `${avgSatisfaction}/5`;
+                // Calculer la satisfaction (implicite) en pourcentage
+                const rejectedTicketsRpt = allTickets.filter(t => t.status === "rejete");
+                const resolvedCountRpt = resolvedTickets.length;
+                const rejectedCountRpt = rejectedTicketsRpt.length;
+                const denomRpt = resolvedCountRpt + rejectedCountRpt;
+                const satisfactionDisplay = `${denomRpt > 0 ? ((resolvedCountRpt / denomRpt) * 100).toFixed(1) : "0"}%`;
                 
                 // Calculer les tickets escaladés (critiques en cours)
                 const escalatedTickets = allTickets.filter((t) => 
@@ -4359,27 +4358,7 @@ function DSIDashboard({ token }: DSIDashboardProps) {
             <div style={{ padding: "24px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
                 <h2 style={{ fontSize: "28px", fontWeight: "600", color: "#333", margin: 0 }}>Gestion des Techniciens</h2>
-                <button
-                  onClick={() => setShowCreateTechnicianModal(true)}
-                  style={{
-                    padding: "10px 20px",
-                    background: "#28a745",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "6px",
-                    cursor: "pointer",
-                    fontSize: "14px",
-                    fontWeight: "500",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px"
-                  }}
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M12 5v14M5 12h14" />
-                  </svg>
-                  Créer un technicien
-                </button>
+                {/* Bouton de création masqué pour DSI et rôles non-admin */}
               </div>
 
               {/* Barre de recherche et filtres */}
@@ -4549,16 +4528,30 @@ function DSIDashboard({ token }: DSIDashboardProps) {
                              <div style={{ flex: 1 }}>
                                <div style={{ fontSize: "18px", fontWeight: "700", color: "#333", marginBottom: "4px", display: "flex", alignItems: "center", gap: "8px" }}>
                                  {tech.full_name}
-                                 <span style={{
-                                   padding: "2px 8px",
-                                   borderRadius: "8px",
-                                   fontSize: "12px",
-                                   fontWeight: "500",
-                                   background: currentStatus === "disponible" ? "#d4edda" : (currentStatus === "occupé" ? "#fff3cd" : "#f8d7da"),
-                                   color: currentStatus === "disponible" ? "#155724" : (currentStatus === "occupé" ? "#856404" : "#721c24")
-                                 }}>
-                                   {currentStatus === "disponible" ? "Disponible" : (currentStatus === "occupé" ? "Occupé" : (currentStatus === "en pause" ? "En pause" : "Actif"))}
-                                 </span>
+                                <span style={{
+                                  padding: "2px 8px",
+                                  borderRadius: "8px",
+                                  fontSize: "12px",
+                                  fontWeight: "500",
+                                  background:
+                                    currentStatus === "disponible" ? "#d4edda" :
+                                    currentStatus === "occupé" ? "#fff3cd" :
+                                    currentStatus === "en pause" ? "#fde68a" :
+                                    "#e5e7eb",
+                                  color:
+                                    currentStatus === "disponible" ? "#155724" :
+                                    currentStatus === "occupé" ? "#856404" :
+                                    currentStatus === "en pause" ? "#92400e" :
+                                    "#374151"
+                                }}>
+                                  {currentStatus === "disponible"
+                                    ? "Disponible"
+                                    : currentStatus === "occupé"
+                                    ? "Occupé"
+                                    : currentStatus === "en pause"
+                                    ? "En pause"
+                                    : "Indisponible"}
+                                </span>
                                </div>
                                <span style={{
                                  padding: "4px 10px",
@@ -4724,85 +4717,8 @@ function DSIDashboard({ token }: DSIDashboardProps) {
                                </svg>
                                Voir Profil
                              </button>
-                             <button
-                               onClick={(e) => {
-                                 e.stopPropagation();
-                                 setEditingTechnician(tech);
-                                 setShowEditTechnicianModal(true);
-                               }}
-                               style={{
-                                 width: "40px",
-                                 height: "40px",
-                                 minWidth: "40px",
-                                 minHeight: "40px",
-                                 background: "#007bff",
-                                 border: "2px solid #007bff",
-                                 borderRadius: "6px",
-                                 color: "white",
-                                 cursor: "pointer",
-                                 display: "flex",
-                                 alignItems: "center",
-                                 justifyContent: "center",
-                                 transition: "all 0.2s ease",
-                                 boxShadow: "0 2px 4px rgba(0,123,255,0.3)"
-                               }}
-                               onMouseEnter={(e) => {
-                                 e.currentTarget.style.background = "#0056b3";
-                                 e.currentTarget.style.borderColor = "#0056b3";
-                                 e.currentTarget.style.transform = "scale(1.05)";
-                               }}
-                               onMouseLeave={(e) => {
-                                 e.currentTarget.style.background = "#007bff";
-                                 e.currentTarget.style.borderColor = "#007bff";
-                                 e.currentTarget.style.transform = "scale(1)";
-                               }}
-                               title="Modifier"
-                             >
-                               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                               </svg>
-                             </button>
-                             <button
-                               onClick={(e) => {
-                                 e.stopPropagation();
-                                 setTechnicianToDelete(tech);
-                                 setShowDeleteConfirmModal(true);
-                               }}
-                               style={{
-                                 width: "40px",
-                                 height: "40px",
-                                 minWidth: "40px",
-                                 minHeight: "40px",
-                                 background: "#dc3545",
-                                 border: "2px solid #dc3545",
-                                 borderRadius: "6px",
-                                 color: "white",
-                                 cursor: "pointer",
-                                 display: "flex",
-                                 alignItems: "center",
-                                 justifyContent: "center",
-                                 transition: "all 0.2s ease",
-                                 boxShadow: "0 2px 4px rgba(220,53,69,0.3)"
-                               }}
-                               onMouseEnter={(e) => {
-                                 e.currentTarget.style.background = "#c82333";
-                                 e.currentTarget.style.borderColor = "#c82333";
-                                 e.currentTarget.style.transform = "scale(1.05)";
-                               }}
-                               onMouseLeave={(e) => {
-                                 e.currentTarget.style.background = "#dc3545";
-                                 e.currentTarget.style.borderColor = "#dc3545";
-                                 e.currentTarget.style.transform = "scale(1)";
-                               }}
-                               title="Supprimer"
-                             >
-                               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                 <polyline points="3 6 5 6 21 6" />
-                                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                               </svg>
-                             </button>
-                           </div>
+                            {/* Boutons Modifier/Supprimer masqués pour DSI et rôles non-admin */}
+                          </div>
                          </div>
                        );
                      })}

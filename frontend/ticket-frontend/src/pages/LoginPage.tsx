@@ -1,5 +1,5 @@
-import React from "react";
-import { FormEvent, useState } from "react";
+import { useState } from "react";
+import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 
 interface LoginPageProps {
@@ -253,5 +253,4 @@ function LoginPage({ onLogin }: LoginPageProps) {
 }
 
 export default LoginPage;
-
 
