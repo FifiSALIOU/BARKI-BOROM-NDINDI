@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { PanelLeft, Clock3, Users, CheckCircle2, FileBarChart, ChevronRight, ChevronDown } from "lucide-react";
+import { PanelLeft, Clock3, Users, CheckCircle2, ChevronRight, ChevronDown } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
@@ -483,194 +483,8 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
       }));
   };
 
-  const getProblematicApplications = () => {
-    // Analyser les types de tickets et les titres pour identifier les applications/équipements problématiques
-    const typeCounts: { [key: string]: number } = {};
-    
-    allTickets.forEach(ticket => {
-      const type = ticket.type || 'autre';
-      typeCounts[type] = (typeCounts[type] || 0) + 1;
-    });
 
-    return Object.entries(typeCounts)
-      .sort((a, b) => b[1] - a[1])
-      .map(([type, count]) => ({
-        application: type === 'materiel' ? 'Matériel' : type === 'applicatif' ? 'Applicatif' : type.charAt(0).toUpperCase() + type.slice(1),
-        tickets: count
-      }));
-  };
 
-  // Fonctions pour préparer les données des graphiques (réutilisées pour les exports "Évolutions dans le temps")
-  const prepareTimeSeriesData = () => {
-    const last30Days = Array.from({ length: 30 }, (_, i) => {
-      const date = new Date();
-      date.setDate(date.getDate() - (29 - i));
-      return date;
-    });
-
-    return last30Days.map(date => {
-      const dateStr = date.toISOString().split('T')[0];
-      const dayTickets = allTickets.filter(t => {
-        if (!t.created_at) return false;
-        const ticketDate = new Date(t.created_at).toISOString().split('T')[0];
-        return ticketDate === dateStr;
-      });
-      const resolvedDayTickets = allTickets.filter(t => {
-        if (!t.created_at) return false;
-        const ticketDate = new Date(t.created_at).toISOString().split('T')[0];
-        return ticketDate === dateStr && (t.status === "resolu" || t.status === "cloture");
-      });
-
-      return {
-        date: date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),
-        créés: dayTickets.length,
-        résolus: resolvedDayTickets.length
-      };
-    });
-  };
-
-  const prepareStatusEvolutionData = () => {
-    const last7Days = Array.from({ length: 7 }, (_, i) => {
-      const date = new Date();
-      date.setDate(date.getDate() - (6 - i));
-      return date;
-    });
-
-    return last7Days.map(date => {
-      const dateStr = date.toISOString().split('T')[0];
-      const dayTickets = allTickets.filter(t => {
-        if (!t.created_at) return false;
-        const ticketDate = new Date(t.created_at).toISOString().split('T')[0];
-        return ticketDate === dateStr;
-      });
-
-      return {
-        date: date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),
-        'En attente': dayTickets.filter(t => t.status === "en_attente_analyse").length,
-        'En cours': dayTickets.filter(t => t.status === "assigne_technicien" || t.status === "en_cours").length,
-        'Résolus': dayTickets.filter(t => t.status === "resolu").length,
-        'Clôturés': dayTickets.filter(t => t.status === "cloture").length
-      };
-    });
-  };
-
-  const preparePriorityEvolutionData = () => {
-    const priorities = ['critique', 'haute', 'moyenne', 'faible'];
-    return priorities.map(priority => ({
-      priorité: priority.charAt(0).toUpperCase() + priority.slice(1),
-      nombre: allTickets.filter(t => t.priority === priority).length
-    }));
-  };
-
-  const prepareDayOfWeekData = () => {
-    const days = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
-    return days.map((day, index) => {
-      const dayTickets = allTickets.filter(t => {
-        if (!t.created_at) return false;
-        const ticketDate = new Date(t.created_at);
-        return ticketDate.getDay() === (index === 6 ? 0 : index + 1);
-      });
-      return {
-        jour: day,
-        tickets: dayTickets.length
-      };
-    });
-  };
-
-  // Fonction helper pour obtenir uniquement les tickets de l'agence de l'adjoint connecté (pour les exports uniquement)
-  const getMyAgencyTicketsForExport = (): Ticket[] => {
-    // Si pas d'agence définie, retourner tous les tickets (comportement par défaut pour l'affichage)
-    if (!userInfo?.agency) {
-      console.warn("⚠️ Aucune agence définie pour l'utilisateur connecté. Utilisation de toutes les données.");
-      return allTickets;
-    }
-    
-    const userAgency = String(userInfo.agency).trim();
-    if (!userAgency) {
-      console.warn("⚠️ Agence de l'utilisateur est vide. Utilisation de toutes les données.");
-      return allTickets;
-    }
-    
-    const filteredTickets = allTickets.filter(ticket => {
-      const ticketAgency = String(ticket.creator?.agency || ticket.user_agency || "").trim();
-      // Comparaison insensible à la casse et aux espaces
-      const match = ticketAgency.toLowerCase() === userAgency.toLowerCase() && ticketAgency !== "";
-      return match;
-    });
-    
-    console.log(`📊 Filtrage par agence "${userAgency}": ${filteredTickets.length} ticket(s) trouvé(s) sur ${allTickets.length} total`);
-    
-    // Si aucun ticket trouvé, retourner tous les tickets pour éviter un export vide
-    if (filteredTickets.length === 0) {
-      console.warn("⚠️ Aucun ticket trouvé pour l'agence. Utilisation de toutes les données pour l'export.");
-      return allTickets;
-    }
-    
-    return filteredTickets;
-  };
-
-  // Fonctions filtrées pour les exports (uniquement pour l'adjoint)
-  const getRecurringTicketsHistoryForExport = () => {
-    const myTickets = getMyAgencyTicketsForExport();
-    const ticketGroups: { [key: string]: Ticket[] } = {};
-    
-    myTickets.forEach(ticket => {
-      if (ticket.title) {
-        const normalizedTitle = ticket.title.toLowerCase()
-          .replace(/[^\w\s]/g, '')
-          .trim();
-        const key = normalizedTitle.split(/\s+/).slice(0, 3).join(' ');
-        
-        if (!ticketGroups[key]) {
-          ticketGroups[key] = [];
-        }
-        ticketGroups[key].push(ticket);
-      }
-    });
-
-    return Object.entries(ticketGroups)
-      .filter(([_, tickets]) => tickets.length > 1)
-      .sort((a, b) => b[1].length - a[1].length)
-      .map(([_, tickets]) => ({
-        titre: tickets[0].title,
-        occurrences: tickets.length,
-        dernier: tickets.sort((a, b) => {
-          const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
-          const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
-          return dateB - dateA;
-        })[0].created_at
-      }));
-  };
-
-  const getMostFrequentProblemsForExport = () => {
-    const myTickets = getMyAgencyTicketsForExport();
-    const ticketGroups: { [key: string]: { title: string; count: number } } = {};
-    
-    myTickets.forEach(ticket => {
-      if (ticket.title) {
-        const normalizedTitle = ticket.title.toLowerCase()
-          .replace(/[^\w\s]/g, '')
-          .trim();
-        const words = normalizedTitle.split(/\s+/).filter(w => w.length > 2);
-        if (words.length >= 3) {
-          const key = words.slice(0, Math.min(5, words.length)).join(' ');
-          
-          if (!ticketGroups[key]) {
-            ticketGroups[key] = { title: ticket.title, count: 0 };
-          }
-          ticketGroups[key].count += 1;
-        }
-      }
-    });
-
-    return Object.values(ticketGroups)
-      .filter(item => item.count >= 2)
-      .sort((a, b) => b.count - a.count)
-      .map(item => ({
-        problème: item.title,
-        occurrences: item.count
-      }));
-  };
 
   // Fonctions d'export pour les rapports
   const exportProblemsHistoryToPDF = (reportType: string = "Problèmes récurrents") => {
@@ -1202,7 +1016,7 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
 
           agencyData.forEach((agency) => {
             agencyTableData.push([
-              agency.agence,
+              agency.agence || '',
               agency.nombreTickets.toString(),
               agency.tempsMoyen,
               agency.satisfaction,
@@ -1787,8 +1601,8 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
 
           agencyData.forEach((agency) => {
             agencyTableData.push([
-              agency.agence,
-              agency.nombreTickets,
+              agency.agence || '',
+              agency.nombreTickets.toString(),
               agency.tempsMoyen,
               agency.satisfaction,
             ]);
@@ -2347,9 +2161,9 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
       await markNotificationAsRead(notification.id);
     }
     
-    // Ouvrir la vue des tickets avec notifications
+    // Ouvrir la vue des tickets avec notifications dans le contenu principal
     setShowNotifications(false);
-    setShowNotificationsTicketsView(true);
+    setActiveSection("notifications");
     setSelectedNotificationTicket(notification.ticket_id);
     
     // Charger les tickets avec notifications
@@ -2358,10 +2172,35 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
 
   // Charger les tickets avec notifications quand la vue s'ouvre
   useEffect(() => {
-    if (showNotificationsTicketsView && notifications.length > 0) {
+    if ((activeSection === "notifications" || showNotificationsTicketsView) && notifications.length > 0) {
       void loadNotificationsTickets();
     }
-  }, [showNotificationsTicketsView, notifications.length]);
+  }, [activeSection, showNotificationsTicketsView, notifications.length]);
+
+  // Charger automatiquement les détails du ticket sélectionné dans la section notifications
+  useEffect(() => {
+    if (activeSection === "notifications" && selectedNotificationTicket) {
+      async function loadDetails() {
+        try {
+          const res = await fetch(`http://localhost:8000/tickets/${selectedNotificationTicket}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setSelectedNotificationTicketDetails(data);
+            if (selectedNotificationTicket) {
+              await loadTicketHistory(selectedNotificationTicket);
+            }
+          }
+        } catch (err) {
+          console.error("Erreur chargement détails:", err);
+        }
+      }
+      void loadDetails();
+    }
+  }, [activeSection, selectedNotificationTicket, token]);
 
   async function handleReassign(ticketId: string) {
     if (!selectedTechnician) {
@@ -2747,7 +2586,12 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
           }}
         >
           <div style={{ width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <Clock3 size={18} color="white" />
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="7" height="7" rx="1" />
+              <rect x="14" y="3" width="7" height="7" rx="1" />
+              <rect x="3" y="14" width="7" height="7" rx="1" />
+              <rect x="14" y="14" width="7" height="7" rx="1" />
+            </svg>
           </div>
           <div>Tableau de Bord</div>
         </div>
@@ -2767,12 +2611,12 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
           }}
         >
           <div style={{ width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-              <polyline points="14,2 14,8 20,8" />
-              <line x1="16" y1="13" x2="8" y2="13" />
-              <line x1="16" y1="17" x2="8" y2="17" />
-              <polyline points="10,9 9,9 8,9" />
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="9" y="2" width="6" height="4" rx="1" />
+              <path d="M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2" />
+              <line x1="8" y1="10" x2="16" y2="10" />
+              <line x1="8" y1="14" x2="16" y2="14" />
+              <line x1="8" y1="18" x2="12" y2="18" />
             </svg>
           </div>
           <div>Tickets</div>
@@ -2792,7 +2636,12 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               }}
             >
               <div style={{ width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <FileBarChart size={18} color="white" />
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" fill="none" stroke="white" />
+                  <rect x="6" y="10" width="3" height="11" fill="white" />
+                  <rect x="10.5" y="6" width="3" height="15" fill="white" />
+                  <rect x="15" y="16" width="3" height="5" fill="white" />
+                </svg>
               </div>
               <div style={{ flex: 1 }}>Rapports</div>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", transition: "transform 0.2s ease" }}>
@@ -2805,7 +2654,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
             </div>
             {showReportsDropdown && (
               <div style={{ 
-                marginLeft: "36px", 
+                marginLeft: "48px", 
                 marginTop: "8px", 
                 display: "flex", 
                 flexDirection: "column", 
@@ -3097,6 +2946,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
         </div>
 
         {/* Contenu principal avec scroll */}
+        {activeSection !== "notifications" && (
         <div style={{ flex: 1, padding: "30px", overflow: "auto", paddingTop: "80px" }}>
           {activeSection === "dashboard" && (
           <>
@@ -3411,7 +3261,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
             recentTickets.map((t) => {
               const isDelegatedToMe = roleName === "Adjoint DSI" && t.secretary_id === userInfo?.id;
               return (
-              <tr key={t.id} data-ticket-id={t.id} style={{ borderBottom: "1px solid #eee", background: isDelegatedToMe ? "#fff3cd" : "transparent" }}>
+              <tr key={t.id} data-ticket-id={t.id} style={{ borderBottom: "1px solid #eee", background: "white" }}>
                 <td style={{ padding: "12px 16px" }}>#{t.number}</td>
                 <td style={{ padding: "12px 16px" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -4441,7 +4291,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     filteredTickets.map((t) => {
                       const isDelegatedToMe = roleName === "Adjoint DSI" && t.secretary_id === userInfo?.id;
                       return (
-                      <tr key={t.id} data-ticket-id={t.id} style={{ borderBottom: "1px solid #eee", background: isDelegatedToMe ? "#fff3cd" : "transparent" }}>
+                      <tr key={t.id} data-ticket-id={t.id} style={{ borderBottom: "1px solid #eee", background: "white" }}>
                         <td style={{ padding: "12px 16px" }}>#{t.number}</td>
                         <td style={{ padding: "12px 16px" }}>
                           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -5436,7 +5286,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                         </div>
                       )}
                       {h.reason && (
-                        <div style={{ marginTop: "4px", color: "#666" }}>{h.reason}</div>
+                        <div style={{ marginTop: "4px", color: "#666" }}>Résumé de la résolution: {h.reason}</div>
                       )}
                     </div>
                   ))
@@ -6249,12 +6099,12 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                               cx="50%"
                               cy="50%"
                               labelLine={false}
-                              label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                              label={({ name, percent }) => `${name}: ${((percent ?? 0) * 100).toFixed(0)}%`}
                               outerRadius={100}
                               fill="#8884d8"
                               dataKey="value"
                             >
-                              {["critique", "haute", "moyenne", "faible"].map((entry, index) => {
+                              {["critique", "haute", "moyenne", "faible"].map((_, index) => {
                                 const colors = ["#dc3545", "#ffc107", "#007bff", "#28a745"];
                                 return <Cell key={`cell-${index}`} fill={colors[index]} />;
                               })}
@@ -7156,6 +7006,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
             </>
           )}
         </div>
+        )}
       </div>
 
       {/* Modal de notifications */}
@@ -7598,6 +7449,338 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
             </div>
           </div>
         </div>
+        )}
+
+      {/* Section Notifications dans le contenu principal */}
+      {activeSection === "notifications" && (
+        <div style={{
+          display: "flex",
+          width: "100%",
+          height: "calc(100vh - 80px)",
+          marginTop: "-30px",
+          marginLeft: "-30px",
+          marginRight: "-30px",
+          marginBottom: "-30px",
+          background: "white",
+          borderRadius: "8px",
+          boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+          overflow: "hidden"
+        }}>
+          {/* Panneau gauche - Liste des tickets avec notifications */}
+          <div style={{
+            width: "400px",
+            borderRight: "1px solid #e0e0e0",
+            display: "flex",
+            flexDirection: "column",
+            background: "#f8f9fa",
+            borderRadius: "8px 0 0 8px",
+            height: "100%",
+            overflow: "hidden",
+            flexShrink: 0
+          }}>
+            <div style={{
+              padding: "20px",
+              borderBottom: "1px solid #e0e0e0",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              background: "white",
+              borderRadius: "8px 0 0 0"
+            }}>
+              <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "600", color: "#333" }}>
+                Tickets avec notifications
+              </h3>
+              <button
+                onClick={() => {
+                  setActiveSection("dashboard");
+                  setSelectedNotificationTicket(null);
+                  setSelectedNotificationTicketDetails(null);
+                }}
+                style={{
+                  background: "none",
+                  border: "none",
+                  fontSize: "24px",
+                  cursor: "pointer",
+                  color: "#999",
+                  padding: "0",
+                  width: "24px",
+                  height: "24px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center"
+                }}
+              >
+                ×
+              </button>
+            </div>
+            <div style={{
+              flex: 1,
+              overflowY: "auto",
+              padding: "10px"
+            }}>
+              {notificationsTickets.length === 0 ? (
+                <div style={{
+                  textAlign: "center",
+                  padding: "40px 20px",
+                  color: "#999"
+                }}>
+                  Aucun ticket avec notification
+                </div>
+              ) : (
+                notificationsTickets.map((ticket) => {
+                  const ticketNotifications = notifications.filter(n => n.ticket_id === ticket.id);
+                  const unreadCount = ticketNotifications.filter(n => !n.read).length;
+                  const isSelected = selectedNotificationTicket === ticket.id;
+                  
+                  return (
+                    <div
+                      key={ticket.id}
+                      onClick={async () => {
+                        setSelectedNotificationTicket(ticket.id);
+                        try {
+                          const res = await fetch(`http://localhost:8000/tickets/${ticket.id}`, {
+                            headers: {
+                              Authorization: `Bearer ${token}`,
+                            },
+                          });
+                          if (res.ok) {
+                            const data = await res.json();
+                            setSelectedNotificationTicketDetails(data);
+                            await loadTicketHistory(ticket.id);
+                          }
+                        } catch (err) {
+                          console.error("Erreur chargement détails:", err);
+                        }
+                      }}
+                      style={{
+                        padding: "12px",
+                        marginBottom: "8px",
+                        borderRadius: "8px",
+                        background: isSelected ? "#e3f2fd" : "white",
+                        border: isSelected ? "2px solid #2196f3" : "1px solid #e0e0e0",
+                        cursor: "pointer",
+                        transition: "all 0.2s"
+                      }}
+                    >
+                      <div style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "flex-start",
+                        gap: "10px"
+                      }}>
+                        <div style={{ flex: 1 }}>
+                          <p style={{
+                            margin: 0,
+                            fontSize: "14px",
+                            fontWeight: isSelected ? "600" : "500",
+                            color: "#333",
+                            lineHeight: "1.5"
+                          }}>
+                            Ticket #{ticket.number}
+                          </p>
+                          <p style={{
+                            margin: "4px 0 0 0",
+                            fontSize: "13px",
+                            color: "#666",
+                            lineHeight: "1.4",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical"
+                          }}>
+                            {ticket.title}
+                          </p>
+                          <p style={{
+                            margin: "4px 0 0 0",
+                            fontSize: "11px",
+                            color: "#999"
+                          }}>
+                            {ticketNotifications.length} notification{ticketNotifications.length > 1 ? "s" : ""}
+                          </p>
+                        </div>
+                        {unreadCount > 0 && (
+                          <div style={{
+                            minWidth: "20px",
+                            height: "20px",
+                            borderRadius: "10px",
+                            background: "#f44336",
+                            color: "white",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: "11px",
+                            fontWeight: "600",
+                            padding: "0 6px"
+                          }}>
+                            {unreadCount}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
+          {/* Panneau droit - Détails du ticket sélectionné */}
+          <div style={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            overflow: "hidden",
+            background: "white",
+            borderRadius: "0 8px 8px 0"
+          }}>
+            {selectedNotificationTicketDetails ? (
+              <>
+                <div style={{
+                  padding: "20px",
+                  borderBottom: "1px solid #e0e0e0",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  background: "white",
+                  borderRadius: "0 8px 0 0"
+                }}>
+                  <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "600", color: "#333" }}>Détails du ticket #{selectedNotificationTicketDetails.number}</h3>
+                  {selectedNotificationTicketDetails.status === "rejete" && (
+                    <span style={{
+                      padding: "6px 10px",
+                      borderRadius: "16px",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                      background: "#fee2e2",
+                      color: "#991b1b",
+                      border: "1px solid #fecaca"
+                    }}>
+                      Rejeté
+                    </span>
+                  )}
+                </div>
+                
+                <div style={{
+                  flex: 1,
+                  overflowY: "auto",
+                  padding: "20px",
+                  minHeight: 0
+                }}>
+                  <div style={{ marginBottom: "16px" }}>
+                    <strong>Titre :</strong>
+                    <p style={{ marginTop: "4px", padding: "8px", background: "#f8f9fa", borderRadius: "4px" }}>
+                      {selectedNotificationTicketDetails.title}
+                    </p>
+                  </div>
+
+                  {selectedNotificationTicketDetails.description && (
+                    <div style={{ marginBottom: "16px" }}>
+                      <strong>Description :</strong>
+                      <p style={{ marginTop: "4px", padding: "8px", background: "#f8f9fa", borderRadius: "4px", whiteSpace: "pre-wrap" }}>
+                        {selectedNotificationTicketDetails.description}
+                      </p>
+                    </div>
+                  )}
+
+                  <div style={{ display: "flex", gap: "16px", marginBottom: "16px", flexWrap: "wrap" }}>
+                    <div>
+                      <strong>Type :</strong>
+                      <span style={{ marginLeft: "8px", padding: "4px 8px", background: "#e3f2fd", borderRadius: "4px" }}>
+                        {selectedNotificationTicketDetails.type === "materiel" ? "Matériel" : "Applicatif"}
+                      </span>
+                    </div>
+                    <div>
+                      <strong>Priorité :</strong>
+                      <span style={{
+                        marginLeft: "8px",
+                        padding: "4px 8px",
+                        borderRadius: "4px",
+                        fontSize: "12px",
+                        fontWeight: "500",
+                        background: selectedNotificationTicketDetails.priority === "critique" ? "#f44336" : selectedNotificationTicketDetails.priority === "haute" ? "#fed7aa" : selectedNotificationTicketDetails.priority === "moyenne" ? "#ffc107" : "#9e9e9e",
+                        color: selectedNotificationTicketDetails.priority === "haute" ? "#92400e" : "white"
+                      }}>
+                        {selectedNotificationTicketDetails.priority}
+                      </span>
+                    </div>
+                    <div>
+                      <strong>Statut :</strong>
+                      <span style={{ marginLeft: "8px", padding: "4px 8px", background: "#f3e5f5", borderRadius: "4px" }}>
+                        {selectedNotificationTicketDetails.status}
+                      </span>
+                    </div>
+                    {selectedNotificationTicketDetails.category && (
+                      <div>
+                        <strong>Catégorie :</strong>
+                        <span style={{ marginLeft: "8px", padding: "4px 8px", background: "#f3e5f5", borderRadius: "4px" }}>
+                          {selectedNotificationTicketDetails.category}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div style={{ display: "flex", gap: "16px", marginBottom: "16px", flexWrap: "wrap" }}>
+                    {selectedNotificationTicketDetails.creator && (
+                      <div>
+                        <strong>Créateur :</strong>
+                        <p style={{ marginTop: "4px" }}>
+                          {selectedNotificationTicketDetails.creator.full_name}
+                          {selectedNotificationTicketDetails.creator.agency && ` - ${selectedNotificationTicketDetails.creator.agency}`}
+                        </p>
+                      </div>
+                    )}
+                    {selectedNotificationTicketDetails.technician && (
+                      <div>
+                        <strong>Technicien assigné :</strong>
+                        <p style={{ marginTop: "4px" }}>
+                          {selectedNotificationTicketDetails.technician.full_name}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div style={{ marginTop: "24px", marginBottom: "16px" }}>
+                    <strong>Historique :</strong>
+                    <div style={{ marginTop: "8px" }}>
+                      {ticketHistory.length === 0 ? (
+                        <p style={{ color: "#999", fontStyle: "italic" }}>Aucun historique</p>
+                      ) : (
+                        ticketHistory.map((h) => (
+                          <div key={h.id} style={{ padding: "8px", marginTop: "4px", background: "#f8f9fa", borderRadius: "4px" }}>
+                            <div style={{ fontSize: "12px", color: "#555" }}>
+                              {new Date(h.changed_at).toLocaleString("fr-FR")}
+                            </div>
+                            <div style={{ marginTop: "4px", fontWeight: 500 }}>
+                              {h.old_status ? `${h.old_status} → ${h.new_status}` : h.new_status}
+                            </div>
+                            {h.user && (
+                              <div style={{ marginTop: "4px", fontSize: "12px", color: "#666" }}>
+                                Par: {h.user.full_name}
+                              </div>
+                            )}
+                            {h.reason && (
+                              <div style={{ marginTop: "4px", color: "#666" }}>Résumé de la résolution: {h.reason}</div>
+                            )}
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                  </div>
+              </>
+            ) : (
+              <div style={{
+                flex: 1,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#999"
+              }}>
+                Sélectionnez un ticket pour voir les détails
+              </div>
+            )}
+          </div>
+        </div>
       )}
 
       {/* Interface split-view pour les tickets avec notifications */}
@@ -7615,8 +7798,9 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
           <div style={{
             display: "flex",
             width: "100%",
-            height: "100%",
-            background: "white"
+            height: "100vh",
+            background: "white",
+            overflow: "hidden"
           }}>
             {/* Panneau gauche - Liste des tickets avec notifications */}
             <div style={{
@@ -7624,7 +7808,10 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               borderRight: "1px solid #e0e0e0",
               display: "flex",
               flexDirection: "column",
-              background: "#f8f9fa"
+              background: "#f8f9fa",
+              height: "100%",
+              overflow: "hidden",
+              flexShrink: 0
             }}>
               <div style={{
                 padding: "20px",
@@ -7907,129 +8094,6 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                             </div>
                           ))
                         )}
-                      </div>
-                    </div>
-
-                    {/* Actions disponibles pour le secrétaire */}
-                    <div style={{ marginTop: "24px", paddingTop: "16px", borderTop: "1px solid #e0e0e0" }}>
-                      <strong style={{ display: "block", marginBottom: "12px" }}>Actions :</strong>
-                      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                        {(selectedNotificationTicketDetails.status === "nouveau" || selectedNotificationTicketDetails.status === "en_attente") && (
-                          <button
-                            onClick={() => {
-                              setShowNotificationsTicketsView(false);
-                              setAssignModalTicketId(selectedNotificationTicketDetails.id);
-                              setShowAssignModal(true);
-                            }}
-                            style={{
-                              padding: "8px 16px",
-                              backgroundColor: "#17a2b8",
-                              color: "white",
-                              border: "none",
-                              borderRadius: "4px",
-                              cursor: "pointer",
-                              fontSize: "14px"
-                            }}
-                          >
-                            Assigner un technicien
-                          </button>
-                        )}
-                        {selectedNotificationTicketDetails.status === "assigne_technicien" && (
-                          <button
-                            onClick={() => {
-                              setShowNotificationsTicketsView(false);
-                              setAssignModalTicketId(selectedNotificationTicketDetails.id);
-                              setShowAssignModal(true);
-                            }}
-                            style={{
-                              padding: "8px 16px",
-                              backgroundColor: "#ffc107",
-                              color: "#333",
-                              border: "none",
-                              borderRadius: "4px",
-                              cursor: "pointer",
-                              fontSize: "14px"
-                            }}
-                          >
-                            Réassigner
-                          </button>
-                        )}
-                        {selectedNotificationTicketDetails.status !== "cloture" && selectedNotificationTicketDetails.status !== "resolu" && (
-                          <button
-                            onClick={() => {
-                              setShowNotificationsTicketsView(false);
-                              handleEscalate(selectedNotificationTicketDetails.id);
-                            }}
-                            style={{
-                              padding: "8px 16px",
-                              backgroundColor: "#dc3545",
-                              color: "white",
-                              border: "none",
-                              borderRadius: "4px",
-                              cursor: "pointer",
-                              fontSize: "14px"
-                            }}
-                          >
-                            Escalader
-                          </button>
-                        )}
-                        {selectedNotificationTicketDetails.status === "resolu" && (
-                          <button
-                            onClick={() => {
-                              setShowNotificationsTicketsView(false);
-                              handleClose(selectedNotificationTicketDetails.id);
-                            }}
-                            style={{
-                              padding: "8px 16px",
-                              backgroundColor: "#28a745",
-                              color: "white",
-                              border: "none",
-                              borderRadius: "4px",
-                              cursor: "pointer",
-                              fontSize: "14px"
-                            }}
-                          >
-                            Clôturer
-                          </button>
-                        )}
-                        {selectedNotificationTicketDetails.status === "cloture" && (
-                          <button
-                            onClick={() => {
-                              setShowNotificationsTicketsView(false);
-                              handleReopenClick(selectedNotificationTicketDetails.id);
-                            }}
-                            style={{
-                              padding: "8px 16px",
-                              backgroundColor: "#6c757d",
-                              color: "white",
-                              border: "none",
-                              borderRadius: "4px",
-                              cursor: "pointer",
-                              fontSize: "14px"
-                            }}
-                          >
-                            Rouvrir
-                          </button>
-                        )}
-                        <button
-                          onClick={() => {
-                            setShowNotificationsTicketsView(false);
-                            setViewTicketDetails(selectedNotificationTicketDetails.id);
-                            setTicketDetails(selectedNotificationTicketDetails);
-                            void loadTicketHistory(selectedNotificationTicketDetails.id);
-                          }}
-                          style={{
-                            padding: "8px 16px",
-                            backgroundColor: "#6c757d",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "4px",
-                            cursor: "pointer",
-                            fontSize: "14px"
-                          }}
-                        >
-                          Voir tous les détails
-                        </button>
                       </div>
                     </div>
                   </div>

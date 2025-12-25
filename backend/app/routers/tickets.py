@@ -1032,6 +1032,26 @@ def validate_ticket_resolution(
                     rejection_reason=validation.rejection_reason
                 )
         
+        # Notifier DSI, Adjoints DSI et Secrétaires DSI
+        admin_roles = db.query(models.Role).filter(
+            models.Role.name.in_(["DSI", "Adjoint DSI", "Secrétaire DSI"])
+        ).all()
+        
+        for role in admin_roles:
+            admin_users = db.query(models.User).filter(
+                models.User.role_id == role.id,
+                models.User.status == "actif"
+            ).all()
+            for admin_user in admin_users:
+                admin_notification = models.Notification(
+                    user_id=admin_user.id,
+                    type=models.NotificationType.REJET_RESOLUTION,
+                    ticket_id=ticket.id,
+                    message=f"L'utilisateur a rejeté la résolution du ticket #{ticket.number}: {ticket.title}. Motif: {validation.rejection_reason}",
+                    read=False
+                )
+                db.add(admin_notification)
+        
         # Construire la raison pour l'historique avec le motif
         history_reason = f"Validation utilisateur: Rejeté. Motif: {validation.rejection_reason}"
     

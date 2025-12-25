@@ -388,9 +388,9 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
       await markNotificationAsRead(notification.id);
     }
     
-    // Ouvrir la vue des tickets avec notifications
+    // Ouvrir la vue des tickets avec notifications dans le contenu principal
     setShowNotifications(false);
-    setShowNotificationsTicketsView(true);
+    setActiveSection("notifications");
     setSelectedNotificationTicket(notification.ticket_id);
     
     // Charger les tickets avec notifications
@@ -399,10 +399,35 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
 
   // Charger les tickets avec notifications quand la vue s'ouvre
   useEffect(() => {
-    if (showNotificationsTicketsView && notifications.length > 0) {
+    if ((activeSection === "notifications" || showNotificationsTicketsView) && notifications.length > 0) {
       void loadNotificationsTickets();
     }
-  }, [showNotificationsTicketsView, notifications.length]);
+  }, [activeSection, showNotificationsTicketsView, notifications.length]);
+
+  // Charger automatiquement les détails du ticket sélectionné dans la section notifications
+  useEffect(() => {
+    if (activeSection === "notifications" && selectedNotificationTicket) {
+      async function loadDetails() {
+        try {
+          const res = await fetch(`http://localhost:8000/tickets/${selectedNotificationTicket}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setSelectedNotificationTicketDetails(data);
+            if (selectedNotificationTicket) {
+              await loadTicketHistory(selectedNotificationTicket);
+            }
+          }
+        } catch (err) {
+          console.error("Erreur chargement détails:", err);
+        }
+      }
+      void loadDetails();
+    }
+  }, [activeSection, selectedNotificationTicket, token]);
 
 
   async function handleTakeCharge(ticketId: string) {
@@ -774,9 +799,10 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
         >
           <div style={{ width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="9" />
-              <line x1="12" y1="12" x2="12" y2="7" />
-              <line x1="12" y1="12" x2="15" y2="14" />
+              <rect x="3" y="3" width="7" height="7" rx="1" />
+              <rect x="14" y="3" width="7" height="7" rx="1" />
+              <rect x="3" y="14" width="7" height="7" rx="1" />
+              <rect x="14" y="14" width="7" height="7" rx="1" />
             </svg>
           </div>
           <div>Tableau de Bord</div>
@@ -1087,6 +1113,7 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
         </div>
 
         {/* Contenu principal avec scroll */}
+        {activeSection !== "notifications" && (
         <div style={{ flex: 1, padding: "30px", overflow: "auto", paddingTop: "80px" }}>
           <div style={{ maxWidth: 1200, margin: "0 auto" }}>
             {activeSection === "dashboard" && (
@@ -2114,7 +2141,340 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
             )}
           </div>
         </div>
-      </div>
+        )}
+
+      {/* Section Notifications dans le contenu principal */}
+      {activeSection === "notifications" && (
+          <div style={{
+            display: "flex",
+            width: "100%",
+            height: "calc(100vh - 80px)",
+            marginTop: "-30px",
+            marginLeft: "-30px",
+            marginRight: "-30px",
+            marginBottom: "-30px",
+            background: "white",
+            borderRadius: "8px",
+            boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+            overflow: "hidden",
+            position: "relative"
+          }}>
+                {/* Panneau gauche - Liste des tickets avec notifications */}
+                <div style={{
+                  width: "400px",
+                  borderRight: "1px solid #e0e0e0",
+                  display: "flex",
+                  flexDirection: "column",
+                  background: "#f8f9fa",
+                  borderRadius: "8px 0 0 8px",
+                  height: "100%",
+                  overflow: "hidden",
+                  flexShrink: 0
+                }}>
+                  <div style={{
+                    padding: "20px",
+                    borderBottom: "1px solid #e0e0e0",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    background: "white",
+                    borderRadius: "8px 0 0 0"
+                  }}>
+                    <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "600", color: "#333" }}>
+                      Tickets avec notifications
+                    </h3>
+                    <button
+                      onClick={() => {
+                        setActiveSection("dashboard");
+                        setSelectedNotificationTicket(null);
+                        setSelectedNotificationTicketDetails(null);
+                      }}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        fontSize: "24px",
+                        cursor: "pointer",
+                        color: "#999",
+                        padding: "0",
+                        width: "24px",
+                        height: "24px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center"
+                      }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <div style={{
+                    flex: 1,
+                    overflowY: "auto",
+                    padding: "10px"
+                  }}>
+                    {notificationsTickets.length === 0 ? (
+                      <div style={{
+                        textAlign: "center",
+                        padding: "40px 20px",
+                        color: "#999"
+                      }}>
+                        Aucun ticket avec notification
+                      </div>
+                    ) : (
+                      notificationsTickets.map((ticket: Ticket) => {
+                        const ticketNotifications = notifications.filter((n: Notification) => n.ticket_id === ticket.id);
+                        const unreadCount = ticketNotifications.filter((n: Notification) => !n.read).length;
+                        const isSelected = selectedNotificationTicket === ticket.id;
+                        
+                        return (
+                          <div
+                            key={ticket.id}
+                            onClick={async () => {
+                              setSelectedNotificationTicket(ticket.id);
+                              try {
+                                const res = await fetch(`http://localhost:8000/tickets/${ticket.id}`, {
+                                  headers: {
+                                    Authorization: `Bearer ${token}`,
+                                  },
+                                });
+                                if (res.ok) {
+                                  const data = await res.json();
+                                  setSelectedNotificationTicketDetails(data);
+                                  await loadTicketHistory(ticket.id);
+                                }
+                              } catch (err) {
+                                console.error("Erreur chargement détails:", err);
+                              }
+                            }}
+                            style={{
+                              padding: "12px",
+                              marginBottom: "8px",
+                              borderRadius: "8px",
+                              background: isSelected ? "#e3f2fd" : "white",
+                              border: isSelected ? "2px solid #2196f3" : "1px solid #e0e0e0",
+                              cursor: "pointer",
+                              transition: "all 0.2s"
+                            }}
+                          >
+                            <div style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "flex-start",
+                              gap: "10px"
+                            }}>
+                              <div style={{ flex: 1 }}>
+                                <p style={{
+                                  margin: 0,
+                                  fontSize: "14px",
+                                  fontWeight: isSelected ? "600" : "500",
+                                  color: "#333",
+                                  lineHeight: "1.5"
+                                }}>
+                                  Ticket #{ticket.number}
+                                </p>
+                                <p style={{
+                                  margin: "4px 0 0 0",
+                                  fontSize: "13px",
+                                  color: "#666",
+                                  lineHeight: "1.4",
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                  display: "-webkit-box",
+                                  WebkitLineClamp: 2,
+                                  WebkitBoxOrient: "vertical"
+                                }}>
+                                  {ticket.title}
+                                </p>
+                                <p style={{
+                                  margin: "4px 0 0 0",
+                                  fontSize: "11px",
+                                  color: "#999"
+                                }}>
+                                  {ticketNotifications.length} notification{ticketNotifications.length > 1 ? "s" : ""}
+                                </p>
+                              </div>
+                              {unreadCount > 0 && (
+                                <div style={{
+                                  minWidth: "20px",
+                                  height: "20px",
+                                  borderRadius: "10px",
+                                  background: "#f44336",
+                                  color: "white",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  fontSize: "11px",
+                                  fontWeight: "600",
+                                  padding: "0 6px"
+                                }}>
+                                  {unreadCount}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+
+                {/* Panneau droit - Détails du ticket sélectionné */}
+                <div style={{
+                  flex: 1,
+                  display: "flex",
+                  flexDirection: "column",
+                  overflow: "hidden",
+                  background: "white",
+                  borderRadius: "0 8px 8px 0"
+                }}>
+                  {selectedNotificationTicketDetails ? (
+                    <>
+                      <div style={{
+                        padding: "20px",
+                        borderBottom: "1px solid #e0e0e0",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        background: "white",
+                        borderRadius: "0 8px 0 0"
+                      }}>
+                        <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "600", color: "#333" }}>Détails du ticket #{selectedNotificationTicketDetails.number}</h3>
+                        {selectedNotificationTicketDetails.status === "rejete" && (
+                          <span style={{
+                            padding: "6px 10px",
+                            borderRadius: "16px",
+                            fontSize: "12px",
+                            fontWeight: 600,
+                            background: "#fee2e2",
+                            color: "#991b1b",
+                            border: "1px solid #fecaca"
+                          }}>
+                            Rejeté
+                          </span>
+                        )}
+                      </div>
+                      
+                      <div style={{
+                        flex: 1,
+                        overflowY: "auto",
+                        padding: "20px",
+                        minHeight: 0
+                      }}>
+                        <div style={{ marginBottom: "16px" }}>
+                          <strong>Titre :</strong>
+                          <p style={{ marginTop: "4px", padding: "8px", background: "#f8f9fa", borderRadius: "4px" }}>
+                            {selectedNotificationTicketDetails.title}
+                          </p>
+                        </div>
+
+                        {selectedNotificationTicketDetails.description && (
+                          <div style={{ marginBottom: "16px" }}>
+                            <strong>Description :</strong>
+                            <p style={{ marginTop: "4px", padding: "8px", background: "#f8f9fa", borderRadius: "4px", whiteSpace: "pre-wrap" }}>
+                              {selectedNotificationTicketDetails.description}
+                            </p>
+                          </div>
+                        )}
+
+                        <div style={{ display: "flex", gap: "16px", marginBottom: "16px", flexWrap: "wrap" }}>
+                          <div>
+                            <strong>Type :</strong>
+                            <span style={{ marginLeft: "8px", padding: "4px 8px", background: "#e3f2fd", borderRadius: "4px" }}>
+                              {selectedNotificationTicketDetails.type === "materiel" ? "Matériel" : "Applicatif"}
+                            </span>
+                          </div>
+                          <div>
+                            <strong>Priorité :</strong>
+                            <span style={{
+                              marginLeft: "8px",
+                              padding: "4px 8px",
+                              borderRadius: "4px",
+                              fontSize: "12px",
+                              fontWeight: "500",
+                              background: selectedNotificationTicketDetails.priority === "critique" ? "#f44336" : selectedNotificationTicketDetails.priority === "haute" ? "#fed7aa" : selectedNotificationTicketDetails.priority === "moyenne" ? "#ffc107" : "#9e9e9e",
+                              color: selectedNotificationTicketDetails.priority === "haute" ? "#92400e" : "white"
+                            }}>
+                              {selectedNotificationTicketDetails.priority}
+                            </span>
+                          </div>
+                          <div>
+                            <strong>Statut :</strong>
+                            <span style={{ marginLeft: "8px", padding: "4px 8px", background: "#f3e5f5", borderRadius: "4px" }}>
+                              {selectedNotificationTicketDetails.status}
+                            </span>
+                          </div>
+                          {selectedNotificationTicketDetails.category && (
+                            <div>
+                              <strong>Catégorie :</strong>
+                              <span style={{ marginLeft: "8px", padding: "4px 8px", background: "#f3e5f5", borderRadius: "4px" }}>
+                                {selectedNotificationTicketDetails.category}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        <div style={{ display: "flex", gap: "16px", marginBottom: "16px", flexWrap: "wrap" }}>
+                          {selectedNotificationTicketDetails.creator && (
+                            <div>
+                              <strong>Créateur :</strong>
+                              <p style={{ marginTop: "4px" }}>
+                                {selectedNotificationTicketDetails.creator.full_name}
+                                {selectedNotificationTicketDetails.creator.agency && ` - ${selectedNotificationTicketDetails.creator.agency}`}
+                              </p>
+                            </div>
+                          )}
+                          {selectedNotificationTicketDetails.technician && (
+                            <div>
+                              <strong>Technicien assigné :</strong>
+                              <p style={{ marginTop: "4px" }}>
+                                {selectedNotificationTicketDetails.technician.full_name}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+
+                        <div style={{ marginTop: "24px", marginBottom: "16px" }}>
+                          <strong>Historique :</strong>
+                          <div style={{ marginTop: "8px" }}>
+                            {ticketHistory.length === 0 ? (
+                              <p style={{ color: "#999", fontStyle: "italic" }}>Aucun historique</p>
+                            ) : (
+                              ticketHistory.map((h: TicketHistory) => (
+                                <div key={h.id} style={{ padding: "8px", marginTop: "4px", background: "#f8f9fa", borderRadius: "4px" }}>
+                                  <div style={{ fontSize: "12px", color: "#555" }}>
+                                    {new Date(h.changed_at).toLocaleString("fr-FR")}
+                                  </div>
+                                  <div style={{ marginTop: "4px", fontWeight: 500 }}>
+                                    {h.old_status ? `${h.old_status} → ${h.new_status}` : h.new_status}
+                                  </div>
+                                  {h.user && (
+                                    <div style={{ marginTop: "4px", fontSize: "12px", color: "#666" }}>
+                                      Par: {h.user.full_name}
+                                    </div>
+                                  )}
+                                  {h.reason && (
+                                    <div style={{ marginTop: "4px", color: "#666" }}>Résumé de la résolution: {h.reason}</div>
+                                  )}
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div style={{
+                      flex: 1,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "#999"
+                    }}>
+                      Sélectionnez un ticket pour voir les détails
+                    </div>
+                  )}
+                </div>
+          </div>
+      )}
 
       {selectedTicket && (
         <div style={{
@@ -2380,13 +2740,13 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                 <strong>Motif du rejet :</strong>
                 <p style={{ marginTop: "4px", padding: "8px", background: "#fff5f5", borderRadius: "4px", color: "#991b1b" }}>
                   {(() => {
-                    const entry = ticketHistory.find((h) => h.new_status === "rejete" && h.reason);
+                    const entry = ticketHistory.find((h: TicketHistory) => h.new_status === "rejete" && h.reason);
                     if (!entry || !entry.reason) return "Motif non fourni";
                     return entry.reason.includes("Motif:") ? (entry.reason.split("Motif:").pop() || "").trim() : entry.reason;
                   })()}
                 </p>
                 {(() => {
-                  const entry = ticketHistory.find((h) => h.new_status === "rejete");
+                  const entry = ticketHistory.find((h: TicketHistory) => h.new_status === "rejete");
                   if (!entry) return null;
                   const when = new Date(entry.changed_at).toLocaleString("fr-FR");
                   const who = ticketDetails.creator?.full_name || "Utilisateur";
@@ -2442,7 +2802,7 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                 {ticketHistory.length === 0 ? (
                   <p style={{ color: "#999", fontStyle: "italic" }}>Aucun historique</p>
                 ) : (
-                  ticketHistory.map((h) => (
+                  ticketHistory.map((h: TicketHistory) => (
                     <div key={h.id} style={{ padding: "8px", marginTop: "4px", background: "#f8f9fa", borderRadius: "4px" }}>
                       <div style={{ fontSize: "12px", color: "#555" }}>
                         {new Date(h.changed_at).toLocaleString("fr-FR")}
@@ -2568,7 +2928,7 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                   Aucune notification
                 </div>
               ) : (
-                notifications.map((notif) => (
+                notifications.map((notif: Notification) => (
                   <div
                     key={notif.id}
                     onClick={() => {
@@ -2653,8 +3013,9 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
           <div style={{
             display: "flex",
             width: "100%",
-            height: "100%",
-            background: "white"
+            height: "100vh",
+            background: "white",
+            overflow: "hidden"
           }}>
             {/* Panneau gauche - Liste des tickets avec notifications */}
             <div style={{
@@ -2662,7 +3023,10 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
               borderRight: "1px solid #e0e0e0",
               display: "flex",
               flexDirection: "column",
-              background: "#f8f9fa"
+              background: "#f8f9fa",
+              height: "100%",
+              overflow: "hidden",
+              flexShrink: 0
             }}>
               <div style={{
                 padding: "20px",
@@ -2712,9 +3076,9 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                     Aucun ticket avec notification
                   </div>
                 ) : (
-                  notificationsTickets.map((ticket) => {
-                    const ticketNotifications = notifications.filter(n => n.ticket_id === ticket.id);
-                    const unreadCount = ticketNotifications.filter(n => !n.read).length;
+                  notificationsTickets.map((ticket: Ticket) => {
+                    const ticketNotifications = notifications.filter((n: Notification) => n.ticket_id === ticket.id);
+                    const unreadCount = ticketNotifications.filter((n: Notification) => !n.read).length;
                     const isSelected = selectedNotificationTicket === ticket.id;
                     
                     return (
@@ -2883,12 +3247,21 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                         </span>
                       </div>
                       <div>
-                        <strong>Catégorie :</strong>
+                        <strong>Statut :</strong>
                         <span style={{ marginLeft: "8px", padding: "4px 8px", background: "#f3e5f5", borderRadius: "4px" }}>
-                          {selectedNotificationTicketDetails.category || "Non spécifiée"}
+                          {selectedNotificationTicketDetails.status}
                         </span>
                       </div>
                     </div>
+
+                    {selectedNotificationTicketDetails.category && (
+                      <div style={{ marginBottom: "16px" }}>
+                        <strong>Catégorie :</strong>
+                        <span style={{ marginLeft: "8px", padding: "4px 8px", background: "#f3e5f5", borderRadius: "4px" }}>
+                          {selectedNotificationTicketDetails.category}
+                        </span>
+                      </div>
+                    )}
 
                     <div style={{ display: "flex", gap: "16px", marginBottom: "16px", flexWrap: "wrap" }}>
                       {selectedNotificationTicketDetails.creator && (
@@ -2916,7 +3289,7 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                         {ticketHistory.length === 0 ? (
                           <p style={{ color: "#999", fontStyle: "italic" }}>Aucun historique</p>
                         ) : (
-                          ticketHistory.map((h) => (
+                          ticketHistory.map((h: TicketHistory) => (
                             <div key={h.id} style={{ padding: "8px", marginTop: "4px", background: "#f8f9fa", borderRadius: "4px" }}>
                               <div style={{ fontSize: "12px", color: "#555" }}>
                                 {new Date(h.changed_at).toLocaleString("fr-FR")}
@@ -2930,96 +3303,11 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                                 </div>
                               )}
                               {h.reason && (
-                                <div style={{ marginTop: "4px", color: "#666" }}>{h.reason}</div>
+                                <div style={{ marginTop: "4px", color: "#666" }}>Résumé de la résolution: {h.reason}</div>
                               )}
                             </div>
                           ))
                         )}
-                      </div>
-                    </div>
-
-                    {/* Actions disponibles pour le technicien */}
-                    <div style={{ marginTop: "24px", paddingTop: "16px", borderTop: "1px solid #e0e0e0" }}>
-                      <strong style={{ display: "block", marginBottom: "12px" }}>Actions :</strong>
-                      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                        {selectedNotificationTicketDetails.status === "assigne_technicien" && (
-                          <button
-                            onClick={() => {
-                              setShowNotificationsTicketsView(false);
-                              handleTakeCharge(selectedNotificationTicketDetails.id);
-                            }}
-                            style={{
-                              padding: "8px 16px",
-                              backgroundColor: "#17a2b8",
-                              color: "white",
-                              border: "none",
-                              borderRadius: "4px",
-                              cursor: "pointer",
-                              fontSize: "14px"
-                            }}
-                          >
-                            Prendre en charge
-                          </button>
-                        )}
-                        {selectedNotificationTicketDetails.status === "en_cours" && (
-                          <>
-                            <button
-                              onClick={() => {
-                                setShowNotificationsTicketsView(false);
-                                setResolveTicket(selectedNotificationTicketDetails.id);
-                                setResolutionSummary("");
-                              }}
-                              style={{
-                                padding: "8px 16px",
-                                backgroundColor: "#28a745",
-                                color: "white",
-                                border: "none",
-                                borderRadius: "4px",
-                                cursor: "pointer",
-                                fontSize: "14px"
-                              }}
-                            >
-                              Marquer comme résolu
-                            </button>
-                            <button
-                              onClick={() => {
-                                setShowNotificationsTicketsView(false);
-                                setRequestInfoTicket(selectedNotificationTicketDetails.id);
-                                setRequestInfoText("");
-                              }}
-                              style={{
-                                padding: "8px 16px",
-                                backgroundColor: "#ffc107",
-                                color: "#333",
-                                border: "none",
-                                borderRadius: "4px",
-                                cursor: "pointer",
-                                fontSize: "14px"
-                              }}
-                            >
-                              Demander des informations
-                            </button>
-                          </>
-                        )}
-                        <button
-                          onClick={() => {
-                            setShowNotificationsTicketsView(false);
-                            setViewTicketDetails(selectedNotificationTicketDetails.id);
-                            setTicketDetails(selectedNotificationTicketDetails);
-                            void loadTicketHistory(selectedNotificationTicketDetails.id);
-                          }}
-                          style={{
-                            padding: "8px 16px",
-                            backgroundColor: "#6c757d",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "4px",
-                            cursor: "pointer",
-                            fontSize: "14px"
-                          }}
-                        >
-                          Voir tous les détails
-                        </button>
                       </div>
                     </div>
                   </div>
@@ -3039,6 +3327,7 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

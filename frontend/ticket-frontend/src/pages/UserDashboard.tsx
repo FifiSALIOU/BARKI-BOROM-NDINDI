@@ -534,21 +534,14 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
       await markNotificationAsRead(notification.id);
     }
     
-    // Ouvrir la vue des tickets avec notifications
+    // Ouvrir la vue des tickets avec notifications dans le contenu principal
     setShowNotifications(false);
-    setShowNotificationsTicketsView(true);
+    setActiveSection("notifications");
     setSelectedNotificationTicket(notification.ticket_id);
     
     // Charger les tickets avec notifications
     await loadNotificationsTickets();
   }
-
-  // Charger les tickets avec notifications quand la vue s'ouvre
-  useEffect(() => {
-    if (showNotificationsTicketsView && notifications.length > 0) {
-      void loadNotificationsTickets();
-    }
-  }, [showNotificationsTicketsView, notifications.length]);
 
   useEffect(() => {
     if (actualToken) {
@@ -1004,9 +997,11 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
             alignItems: "center", 
             justifyContent: "center"
           }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10" />
-              <polyline points="12 6 12 12 15 15" />
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="7" height="7" rx="1" />
+              <rect x="14" y="3" width="7" height="7" rx="1" />
+              <rect x="3" y="14" width="7" height="7" rx="1" />
+              <rect x="14" y="14" width="7" height="7" rx="1" />
             </svg>
           </div>
           <div style={{ 
@@ -1064,12 +1059,12 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
             alignItems: "center", 
             justifyContent: "center"
           }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-              <line x1="9" y1="3" x2="9" y2="21" />
-              <line x1="8" y1="8" x2="18" y2="8" />
-              <line x1="8" y1="12" x2="18" y2="12" />
-              <line x1="8" y1="16" x2="18" y2="16" />
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="9" y="2" width="6" height="4" rx="1" />
+              <path d="M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2" />
+              <line x1="8" y1="10" x2="16" y2="10" />
+              <line x1="8" y1="14" x2="16" y2="14" />
+              <line x1="8" y1="18" x2="12" y2="18" />
             </svg>
           </div>
           <div style={{ 
@@ -1311,7 +1306,7 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
         </div>
 
         {/* Contenu principal avec scroll */}
-        <div style={{ flex: 1, padding: "30px", overflow: "auto", paddingTop: "80px" }}>
+        <div style={{ flex: 1, padding: "30px", overflow: activeSection === "notifications" ? "hidden" : "auto", paddingTop: "80px" }}>
         {/* Section Tickets - Style GLPI - Visible seulement sur Dashboard */}
           {activeSection === "dashboard" && (
             <div style={{ 
@@ -2213,6 +2208,337 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
         </div>
       )}
 
+      {/* Section Notifications dans le contenu principal */}
+      {activeSection === "notifications" && (
+        <div style={{
+          display: "flex",
+          width: "100%",
+          height: "calc(100vh - 80px)",
+          marginTop: "-30px",
+          marginLeft: "-30px",
+          marginRight: "-30px",
+          marginBottom: "-30px",
+          background: "white",
+          borderRadius: "8px",
+          boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+          overflow: "hidden"
+        }}>
+          {/* Panneau gauche - Liste des tickets avec notifications */}
+          <div style={{
+            width: "400px",
+            borderRight: "1px solid #e0e0e0",
+            display: "flex",
+            flexDirection: "column",
+            background: "#f8f9fa",
+            borderRadius: "8px 0 0 8px",
+            height: "100%",
+            overflow: "hidden",
+            flexShrink: 0
+          }}>
+                  <div style={{
+                    padding: "20px",
+                    borderBottom: "1px solid #e0e0e0",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    background: "white",
+                    borderRadius: "8px 0 0 0"
+                  }}>
+                    <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "600", color: "#333" }}>
+                      Tickets avec notifications
+                    </h3>
+              <button
+                onClick={() => {
+                  setActiveSection("dashboard");
+                  setSelectedNotificationTicket(null);
+                  setSelectedNotificationTicketDetails(null);
+                }}
+                style={{
+                  background: "none",
+                  border: "none",
+                  fontSize: "24px",
+                  cursor: "pointer",
+                  color: "#999",
+                  padding: "0",
+                  width: "24px",
+                  height: "24px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center"
+                }}
+              >
+                ×
+              </button>
+            </div>
+            <div style={{
+              flex: 1,
+              overflowY: "auto",
+              padding: "10px"
+            }}>
+              {notificationsTickets.length === 0 ? (
+                <div style={{
+                  textAlign: "center",
+                  padding: "40px 20px",
+                  color: "#999"
+                }}>
+                  Aucun ticket avec notification
+                </div>
+              ) : (
+                notificationsTickets.map((ticket) => {
+                  const ticketNotifications = notifications.filter(n => n.ticket_id === ticket.id);
+                  const unreadCount = ticketNotifications.filter(n => !n.read).length;
+                  const isSelected = selectedNotificationTicket === ticket.id;
+                  
+                  return (
+                    <div
+                      key={ticket.id}
+                      onClick={async () => {
+                        setSelectedNotificationTicket(ticket.id);
+                        try {
+                          const res = await fetch(`http://localhost:8000/tickets/${ticket.id}`, {
+                            headers: {
+                              Authorization: `Bearer ${actualToken}`,
+                            },
+                          });
+                          if (res.ok) {
+                            const data = await res.json();
+                            setSelectedNotificationTicketDetails(data);
+                            await loadTicketHistory(ticket.id);
+                          }
+                        } catch (err) {
+                          console.error("Erreur chargement détails:", err);
+                        }
+                      }}
+                      style={{
+                        padding: "12px",
+                        marginBottom: "8px",
+                        borderRadius: "8px",
+                        background: isSelected ? "#e3f2fd" : "white",
+                        border: isSelected ? "2px solid #2196f3" : "1px solid #e0e0e0",
+                        cursor: "pointer",
+                        transition: "all 0.2s"
+                      }}
+                    >
+                      <div style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "flex-start",
+                        gap: "10px"
+                      }}>
+                        <div style={{ flex: 1 }}>
+                          <p style={{
+                            margin: 0,
+                            fontSize: "14px",
+                            fontWeight: isSelected ? "600" : "500",
+                            color: "#333",
+                            lineHeight: "1.5"
+                          }}>
+                            Ticket #{ticket.number}
+                          </p>
+                          <p style={{
+                            margin: "4px 0 0 0",
+                            fontSize: "13px",
+                            color: "#666",
+                            lineHeight: "1.4",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical"
+                          }}>
+                            {ticket.title}
+                          </p>
+                          <p style={{
+                            margin: "4px 0 0 0",
+                            fontSize: "11px",
+                            color: "#999"
+                          }}>
+                            {ticketNotifications.length} notification{ticketNotifications.length > 1 ? "s" : ""}
+                          </p>
+                        </div>
+                        {unreadCount > 0 && (
+                          <div style={{
+                            minWidth: "20px",
+                            height: "20px",
+                            borderRadius: "10px",
+                            background: "#f44336",
+                            color: "white",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: "11px",
+                            fontWeight: "600",
+                            padding: "0 6px"
+                          }}>
+                            {unreadCount}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
+          {/* Panneau droit - Détails du ticket sélectionné */}
+          <div style={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            overflow: "hidden",
+            background: "white",
+            borderRadius: "0 8px 8px 0"
+          }}>
+            {selectedNotificationTicketDetails ? (
+              <>
+                <div style={{
+                  padding: "20px",
+                  borderBottom: "1px solid #e0e0e0",
+                  background: "white",
+                  borderRadius: "0 8px 0 0"
+                }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <h3 style={{ margin: 0 }}>Détails du ticket #{selectedNotificationTicketDetails.number}</h3>
+                    {selectedNotificationTicketDetails.status === "rejete" && (
+                      <span style={{
+                        padding: "6px 10px",
+                        borderRadius: "16px",
+                        fontSize: "12px",
+                        fontWeight: 600,
+                        background: "#fee2e2",
+                        color: "#991b1b",
+                        border: "1px solid #fecaca"
+                      }}>
+                        Rejeté
+                      </span>
+                    )}
+                  </div>
+                </div>
+                
+                <div style={{
+                  flex: 1,
+                  overflowY: "auto",
+                  padding: "20px"
+                }}>
+                  <div style={{ marginBottom: "16px" }}>
+                    <strong>Titre :</strong>
+                    <p style={{ marginTop: "4px", padding: "8px", background: "#f8f9fa", borderRadius: "4px" }}>
+                      {selectedNotificationTicketDetails.title}
+                    </p>
+                  </div>
+
+                  {selectedNotificationTicketDetails.description && (
+                    <div style={{ marginBottom: "16px" }}>
+                      <strong>Description :</strong>
+                      <p style={{ marginTop: "4px", padding: "8px", background: "#f8f9fa", borderRadius: "4px", whiteSpace: "pre-wrap" }}>
+                        {selectedNotificationTicketDetails.description}
+                      </p>
+                    </div>
+                  )}
+
+                  <div style={{ display: "flex", gap: "16px", marginBottom: "16px", flexWrap: "wrap" }}>
+                    {selectedNotificationTicketDetails.type && (
+                      <div>
+                        <strong>Type :</strong>
+                        <span style={{ marginLeft: "8px", padding: "4px 8px", background: "#e3f2fd", borderRadius: "4px" }}>
+                          {selectedNotificationTicketDetails.type === "materiel" ? "Matériel" : "Applicatif"}
+                        </span>
+                      </div>
+                    )}
+                    <div>
+                      <strong>Priorité :</strong>
+                      <span style={{
+                        marginLeft: "8px",
+                        padding: "4px 8px",
+                        borderRadius: "4px",
+                        fontSize: "12px",
+                        fontWeight: "500",
+                        background: selectedNotificationTicketDetails.priority === "critique" ? "#f44336" : selectedNotificationTicketDetails.priority === "haute" ? "#fed7aa" : selectedNotificationTicketDetails.priority === "moyenne" ? "#ffc107" : "#9e9e9e",
+                        color: selectedNotificationTicketDetails.priority === "haute" ? "#92400e" : "white"
+                      }}>
+                        {selectedNotificationTicketDetails.priority}
+                      </span>
+                    </div>
+                    <div>
+                      <strong>Statut :</strong>
+                      <span style={{ marginLeft: "8px", padding: "4px 8px", background: "#f3e5f5", borderRadius: "4px" }}>
+                        {selectedNotificationTicketDetails.status}
+                      </span>
+                    </div>
+                    {selectedNotificationTicketDetails.category && (
+                      <div>
+                        <strong>Catégorie :</strong>
+                        <span style={{ marginLeft: "8px", padding: "4px 8px", background: "#f3e5f5", borderRadius: "4px" }}>
+                          {selectedNotificationTicketDetails.category}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div style={{ display: "flex", gap: "16px", marginBottom: "16px", flexWrap: "wrap" }}>
+                    {selectedNotificationTicketDetails.creator && (
+                      <div>
+                        <strong>Créateur :</strong>
+                        <p style={{ marginTop: "4px" }}>
+                          {selectedNotificationTicketDetails.creator.full_name}
+                        </p>
+                      </div>
+                    )}
+                    {selectedNotificationTicketDetails.technician && (
+                      <div>
+                        <strong>Technicien assigné :</strong>
+                        <p style={{ marginTop: "4px" }}>
+                          {selectedNotificationTicketDetails.technician.full_name}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div style={{ marginTop: "24px", marginBottom: "16px" }}>
+                    <strong>Historique :</strong>
+                    <div style={{ marginTop: "8px" }}>
+                      {ticketHistory.length === 0 ? (
+                        <p style={{ color: "#999", fontStyle: "italic" }}>Aucun historique</p>
+                      ) : (
+                        ticketHistory.map((h) => (
+                          <div key={h.id} style={{ padding: "8px", marginTop: "4px", background: "#f8f9fa", borderRadius: "4px" }}>
+                            <div style={{ fontSize: "12px", color: "#555" }}>
+                              {new Date(h.changed_at).toLocaleString("fr-FR")}
+                            </div>
+                            <div style={{ marginTop: "4px", fontWeight: 500 }}>
+                              {h.old_status ? `${h.old_status} → ${h.new_status}` : h.new_status}
+                            </div>
+                            {h.user && (
+                              <div style={{ marginTop: "4px", fontSize: "12px", color: "#666" }}>
+                                Par: {h.user.full_name}
+                              </div>
+                            )}
+                            {h.reason && (
+                              <div style={{ marginTop: "4px", color: "#666" }}>{h.reason}</div>
+                            )}
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div style={{
+                flex: 1,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#999"
+              }}>
+                Sélectionnez un ticket pour voir les détails
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {showEditModal && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
           <div style={{ background: "white", padding: "32px", borderRadius: "12px", maxWidth: "600px", width: "90%", maxHeight: "90vh", overflowY: "auto" }}>
@@ -2994,8 +3320,9 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
             <div style={{
               display: "flex",
               width: "100%",
-              height: "100%",
-              background: "white"
+              height: "100vh",
+              background: "white",
+              overflow: "hidden"
             }}>
               {/* Panneau gauche - Liste des tickets avec notifications */}
               <div style={{
@@ -3003,7 +3330,10 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                 borderRight: "1px solid #e0e0e0",
                 display: "flex",
                 flexDirection: "column",
-                background: "#f8f9fa"
+                background: "#f8f9fa",
+                height: "100%",
+                overflow: "hidden",
+                flexShrink: 0
               }}>
                 <div style={{
                   padding: "20px",
@@ -3011,7 +3341,8 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
-                  background: "white"
+                  background: "white",
+                  borderRadius: "8px 0 0 0"
                 }}>
                   <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "600", color: "#333" }}>
                     Tickets avec notifications
@@ -3163,7 +3494,8 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                     <div style={{
                       padding: "20px",
                       borderBottom: "1px solid #e0e0e0",
-                      background: "white"
+                      background: "white",
+                      borderRadius: "0 8px 0 0"
                     }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <h3 style={{ margin: 0 }}>Détails du ticket #{selectedNotificationTicketDetails.number}</h3>
@@ -3269,78 +3601,6 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                               </div>
                             ))
                           )}
-                        </div>
-                      </div>
-
-                      {/* Actions disponibles pour l'utilisateur */}
-                      <div style={{ marginTop: "24px", paddingTop: "16px", borderTop: "1px solid #e0e0e0" }}>
-                        <strong style={{ display: "block", marginBottom: "12px" }}>Actions :</strong>
-                        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                          {selectedNotificationTicketDetails.status === "resolu" && !selectedNotificationTicketDetails.feedback_score && (
-                            <button
-                              onClick={() => {
-                                setShowNotificationsTicketsView(false);
-                                setFeedbackTicket(selectedNotificationTicketDetails.id);
-                                setFeedbackScore(5);
-                                setFeedbackComment("");
-                              }}
-                              style={{
-                                padding: "8px 16px",
-                                backgroundColor: "#28a745",
-                                color: "white",
-                                border: "none",
-                                borderRadius: "4px",
-                                cursor: "pointer",
-                                fontSize: "14px"
-                              }}
-                            >
-                              Donner un feedback
-                            </button>
-                          )}
-                          {selectedNotificationTicketDetails.status === "nouveau" && (
-                            <button
-                              onClick={() => {
-                                setShowNotificationsTicketsView(false);
-                                setEditTicketId(selectedNotificationTicketDetails.id);
-                                setEditTitle(selectedNotificationTicketDetails.title);
-                                setEditDescription(selectedNotificationTicketDetails.description || "");
-                                setEditPriority(selectedNotificationTicketDetails.priority);
-                                setEditType(selectedNotificationTicketDetails.type || "materiel");
-                                setEditCategory(selectedNotificationTicketDetails.category || "");
-                                setShowEditModal(true);
-                              }}
-                              style={{
-                                padding: "8px 16px",
-                                backgroundColor: "#17a2b8",
-                                color: "white",
-                                border: "none",
-                                borderRadius: "4px",
-                                cursor: "pointer",
-                                fontSize: "14px"
-                              }}
-                            >
-                              Modifier
-                            </button>
-                          )}
-                          <button
-                            onClick={() => {
-                              setShowNotificationsTicketsView(false);
-                              setViewTicketDetails(selectedNotificationTicketDetails.id);
-                              setTicketDetails(selectedNotificationTicketDetails);
-                              void loadTicketHistory(selectedNotificationTicketDetails.id);
-                            }}
-                            style={{
-                              padding: "8px 16px",
-                              backgroundColor: "#6c757d",
-                              color: "white",
-                              border: "none",
-                              borderRadius: "4px",
-                              cursor: "pointer",
-                              fontSize: "14px"
-                            }}
-                          >
-                            Voir tous les détails
-                          </button>
                         </div>
                       </div>
                     </div>
