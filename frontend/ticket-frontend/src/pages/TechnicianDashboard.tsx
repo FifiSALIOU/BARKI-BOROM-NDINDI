@@ -1488,8 +1488,8 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                                 padding: "4px 8px",
                                 borderRadius: "4px",
                                 fontSize: "12px",
-                                background: "#e3f2fd",
-                                color: "#1976d2",
+                                background: "#f0f9ff",
+                                color: "#0c4a6e",
                                 whiteSpace: "nowrap",
                                 display: "inline-block"
                               }}>

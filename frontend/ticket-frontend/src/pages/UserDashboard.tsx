@@ -1771,8 +1771,8 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                             borderRadius: "12px",
                             fontSize: "12px",
                             fontWeight: "500",
-                            background: t.status === "en_attente_analyse" ? "#fef3c7" : t.status === "assigne_technicien" ? "#dbeafe" : t.status === "en_cours" ? "#fed7aa" : t.status === "resolu" ? "#d4edda" : t.status === "rejete" ? "#fee2e2" : "#e5e7eb",
-                            color: t.status === "en_attente_analyse" ? "#92400e" : t.status === "assigne_technicien" ? "#1e40af" : t.status === "en_cours" ? "#9a3412" : t.status === "resolu" ? "#155724" : t.status === "rejete" ? "#991b1b" : "#374151",
+                            background: t.status === "en_attente_analyse" ? "#fef3c7" : t.status === "assigne_technicien" ? "#f0f9ff" : t.status === "en_cours" ? "#fed7aa" : t.status === "resolu" ? "#d4edda" : t.status === "rejete" ? "#fee2e2" : "#e5e7eb",
+                            color: t.status === "en_attente_analyse" ? "#92400e" : t.status === "assigne_technicien" ? "#0c4a6e" : t.status === "en_cours" ? "#9a3412" : t.status === "resolu" ? "#155724" : t.status === "rejete" ? "#991b1b" : "#374151",
                             display: "inline-flex",
                             alignItems: "center",
                             gap: "6px"
@@ -1982,8 +1982,8 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                         borderRadius: "20px",
                         fontSize: "12px",
                         fontWeight: "500",
-                        background: t.status === "en_attente_analyse" ? "#fef3c7" : t.status === "assigne_technicien" ? "#dbeafe" : t.status === "en_cours" ? "#fed7aa" : t.status === "resolu" ? "#d4edda" : t.status === "rejete" ? "#fee2e2" : t.status === "cloture" ? "#e5e7eb" : "#e5e7eb",
-                        color: t.status === "en_attente_analyse" ? "#92400e" : t.status === "assigne_technicien" ? "#1e40af" : t.status === "en_cours" ? "#9a3412" : t.status === "resolu" ? "#155724" : t.status === "rejete" ? "#991b1b" : t.status === "cloture" ? "#374151" : "#374151",
+                        background: t.status === "en_attente_analyse" ? "#fef3c7" : t.status === "assigne_technicien" ? "#f0f9ff" : t.status === "en_cours" ? "#fed7aa" : t.status === "resolu" ? "#d4edda" : t.status === "rejete" ? "#fee2e2" : t.status === "cloture" ? "#e5e7eb" : "#e5e7eb",
+                        color: t.status === "en_attente_analyse" ? "#92400e" : t.status === "assigne_technicien" ? "#0c4a6e" : t.status === "en_cours" ? "#9a3412" : t.status === "resolu" ? "#155724" : t.status === "rejete" ? "#991b1b" : t.status === "cloture" ? "#374151" : "#374151",
                         whiteSpace: "nowrap",
                         display: "inline-block"
                       }}>

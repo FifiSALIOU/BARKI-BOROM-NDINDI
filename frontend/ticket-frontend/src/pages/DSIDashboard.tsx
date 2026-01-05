@@ -5529,13 +5529,13 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                         fontSize: "12px",
                         fontWeight: "500",
                         background: t.status === "en_attente_analyse" ? "#fef3c7" : 
-                                   t.status === "assigne_technicien" ? "#dbeafe" : 
+                                   t.status === "assigne_technicien" ? "#f0f9ff" : 
                                    t.status === "en_cours" ? "#fed7aa" : 
                                    t.status === "resolu" ? "#d4edda" : 
                                    t.status === "cloture" ? "#e5e7eb" :
                                    t.status === "rejete" ? "#fee2e2" : "#e5e7eb",
                         color: t.status === "en_attente_analyse" ? "#92400e" : 
-                               t.status === "assigne_technicien" ? "#1e40af" : 
+                               t.status === "assigne_technicien" ? "#0c4a6e" : 
                                t.status === "en_cours" ? "#9a3412" : 
                                t.status === "resolu" ? "#155724" : 
                                t.status === "cloture" ? "#374151" :
@@ -6605,13 +6605,13 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                             fontSize: "12px",
                             fontWeight: "500",
                             background: t.status === "en_attente_analyse" ? "#fef3c7" : 
-                                       t.status === "assigne_technicien" ? "#dbeafe" : 
+                                       t.status === "assigne_technicien" ? "#f0f9ff" : 
                                        t.status === "en_cours" ? "#fed7aa" : 
                                        t.status === "resolu" ? "#d4edda" : 
                                        t.status === "cloture" ? "#e5e7eb" :
                                        t.status === "rejete" ? "#fee2e2" : "#e5e7eb",
                             color: t.status === "en_attente_analyse" ? "#92400e" : 
-                                   t.status === "assigne_technicien" ? "#1e40af" : 
+                                   t.status === "assigne_technicien" ? "#0c4a6e" : 
                                    t.status === "en_cours" ? "#9a3412" : 
                                    t.status === "resolu" ? "#155724" : 
                                    t.status === "cloture" ? "#374151" :
@@ -14682,11 +14682,11 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                 <span style={{
                   marginLeft: "8px",
                   padding: "4px 8px",
-                  borderRadius: "4px",
+                  borderRadius: ticketDetails.priority === "critique" ? "20px" : "4px",
                   fontSize: "12px",
                   fontWeight: "500",
-                  background: ticketDetails.priority === "critique" ? "#f44336" : ticketDetails.priority === "haute" ? "#fed7aa" : ticketDetails.priority === "moyenne" ? "#ffc107" : "#9e9e9e",
-                  color: ticketDetails.priority === "haute" ? "#92400e" : "white"
+                  background: ticketDetails.priority === "critique" ? "#fee2e2" : ticketDetails.priority === "haute" ? "#fed7aa" : ticketDetails.priority === "moyenne" ? "#ffc107" : "#9e9e9e",
+                  color: ticketDetails.priority === "critique" ? "#991b1b" : ticketDetails.priority === "haute" ? "#92400e" : "white"
                 }}>
                   {ticketDetails.priority}
                 </span>

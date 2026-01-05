@@ -2969,7 +2969,9 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
             marginBottom: "-30px",
             background: "white",
             borderRadius: "8px",
-            boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
+            boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+            position: "relative",
+            maxHeight: "calc(100vh - 80px)"
           }}>
             {/* Panneau gauche - Liste des tickets avec notifications */}
             <div style={{
@@ -2980,8 +2982,10 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               background: "#f8f9fa",
               borderRadius: "8px 0 0 8px",
               height: "100%",
+              maxHeight: "100%",
               overflow: "hidden",
-              flexShrink: 0
+              flexShrink: 0,
+              position: "relative"
             }}>
               <div style={{
                 padding: "28px 20px 20px 20px",
@@ -2990,7 +2994,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                 justifyContent: "space-between",
                 alignItems: "center",
                 background: "white",
-                borderRadius: "8px 0 0 0"
+                borderRadius: "8px 0 0 0",
+                flexShrink: 0
               }}>
                 <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "600", color: "#333" }}>
                   Tickets avec notifications
@@ -3021,7 +3026,9 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               <div style={{
                 flex: 1,
                 overflowY: "auto",
-                padding: "10px"
+                overflowX: "hidden",
+                padding: "10px",
+                minHeight: 0
               }}>
                 {notificationsTickets.length === 0 ? (
                   <div style={{
@@ -3136,7 +3143,10 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               flexDirection: "column",
               overflow: "hidden",
               background: "white",
-              borderRadius: "0 8px 8px 0"
+              borderRadius: "0 8px 8px 0",
+              position: "relative",
+              height: "100%",
+              maxHeight: "100%"
             }}>
               {selectedNotificationTicketDetails ? (
                 <>
@@ -3144,7 +3154,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     padding: "28px 20px 20px 20px",
                     borderBottom: "1px solid #e0e0e0",
                     background: "white",
-                    borderRadius: "0 8px 0 0"
+                    borderRadius: "0 8px 0 0",
+                    flexShrink: 0
                   }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "600", color: "#333" }}>Détails du ticket #{selectedNotificationTicketDetails.number}</h3>
@@ -3167,7 +3178,9 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                   <div style={{
                     flex: 1,
                     overflowY: "auto",
-                    padding: "20px"
+                    overflowX: "hidden",
+                    padding: "20px",
+                    minHeight: 0
                   }}>
                     <div style={{ marginBottom: "16px" }}>
                       <strong>Titre :</strong>
@@ -3200,8 +3213,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                           borderRadius: "4px",
                           fontSize: "12px",
                           fontWeight: "500",
-                          background: selectedNotificationTicketDetails.priority === "critique" ? "#f44336" : selectedNotificationTicketDetails.priority === "haute" ? "#fed7aa" : selectedNotificationTicketDetails.priority === "moyenne" ? "#ffc107" : "#9e9e9e",
-                          color: selectedNotificationTicketDetails.priority === "haute" ? "#92400e" : "white"
+                          background: selectedNotificationTicketDetails.priority === "critique" ? "#fee2e2" : selectedNotificationTicketDetails.priority === "haute" ? "#fed7aa" : selectedNotificationTicketDetails.priority === "moyenne" ? "#ffc107" : "#9e9e9e",
+                          color: selectedNotificationTicketDetails.priority === "critique" ? "#991b1b" : selectedNotificationTicketDetails.priority === "haute" ? "#92400e" : "white"
                         }}>
                           {selectedNotificationTicketDetails.priority}
                         </span>
@@ -3630,12 +3643,12 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                 </td>
                 <td style={{ padding: "12px 16px" }}>
                   <span style={{
-                    padding: "4px 10px",
-                    borderRadius: "12px",
+                    padding: "6px 12px",
+                    borderRadius: "20px",
                     fontSize: "12px",
                     fontWeight: "500",
-                    background: t.priority === "critique" ? "#f44336" : t.priority === "haute" ? "#fed7aa" : t.priority === "moyenne" ? "#dbeafe" : t.priority === "faible" ? "#fee2e2" : "#9e9e9e",
-                    color: t.priority === "haute" ? "#92400e" : t.priority === "faible" ? "#991b1b" : t.priority === "moyenne" ? "#1e40af" : "white"
+                    background: t.priority === "critique" ? "#fee2e2" : t.priority === "haute" ? "#fed7aa" : t.priority === "moyenne" ? "#dbeafe" : t.priority === "faible" ? "#fee2e2" : "#9e9e9e",
+                    color: t.priority === "critique" ? "#991b1b" : t.priority === "haute" ? "#92400e" : t.priority === "faible" ? "#991b1b" : t.priority === "moyenne" ? "#1e40af" : "#374151"
                   }}>
                     {t.priority}
                   </span>
@@ -3647,12 +3660,12 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     fontSize: "12px",
                     fontWeight: "500",
                     background: t.status === "en_attente_analyse" ? "#fef3c7" : 
-                               t.status === "assigne_technicien" ? "#007bff" : 
+                               t.status === "assigne_technicien" ? "#f0f9ff" : 
                                t.status === "en_cours" ? "#FFDAB9" : 
                                t.status === "resolu" ? "#d4edda" : 
                                t.status === "cloture" ? "#e5e7eb" :
                                t.status === "rejete" ? "#fee2e2" : "#e0e0e0",
-                    color: t.status === "resolu" ? "#155724" : t.status === "en_attente_analyse" ? "#92400e" : t.status === "en_cours" ? "#8B4513" : t.status === "cloture" ? "#374151" : t.status === "rejete" ? "#991b1b" : "white",
+                    color: t.status === "resolu" ? "#155724" : t.status === "en_attente_analyse" ? "#92400e" : t.status === "en_cours" ? "#8B4513" : t.status === "cloture" ? "#374151" : t.status === "rejete" ? "#991b1b" : t.status === "assigne_technicien" ? "#0c4a6e" : "white",
                     whiteSpace: "nowrap",
                     display: "inline-block"
                   }}>
@@ -4660,12 +4673,12 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                         </td>
                         <td style={{ padding: "12px 16px" }}>
                           <span style={{
-                            padding: "4px 10px",
-                            borderRadius: "12px",
+                            padding: "6px 12px",
+                            borderRadius: "20px",
                             fontSize: "12px",
                             fontWeight: "500",
-                            background: t.priority === "critique" ? "#f44336" : t.priority === "haute" ? "#fed7aa" : t.priority === "moyenne" ? "#dbeafe" : t.priority === "faible" ? "#fee2e2" : "#9e9e9e",
-                            color: t.priority === "haute" ? "#92400e" : t.priority === "faible" ? "#991b1b" : t.priority === "moyenne" ? "#1e40af" : "white"
+                            background: t.priority === "critique" ? "#fee2e2" : t.priority === "haute" ? "#fed7aa" : t.priority === "moyenne" ? "#dbeafe" : t.priority === "faible" ? "#fee2e2" : "#9e9e9e",
+                            color: t.priority === "critique" ? "#991b1b" : t.priority === "haute" ? "#92400e" : t.priority === "faible" ? "#991b1b" : t.priority === "moyenne" ? "#1e40af" : "#374151"
                           }}>
                             {t.priority}
                           </span>
@@ -4677,12 +4690,12 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                             fontSize: "12px",
                             fontWeight: "500",
                             background: t.status === "en_attente_analyse" ? "#fef3c7" : 
-                                       t.status === "assigne_technicien" ? "#007bff" : 
+                                       t.status === "assigne_technicien" ? "#f0f9ff" : 
                                        t.status === "en_cours" ? "#FFDAB9" : 
                                        t.status === "resolu" ? "#d4edda" : 
                                        t.status === "cloture" ? "#e5e7eb" :
                                        t.status === "rejete" ? "#fee2e2" : "#e0e0e0",
-                            color: t.status === "resolu" ? "#155724" : t.status === "en_attente_analyse" ? "#92400e" : t.status === "en_cours" ? "#8B4513" : t.status === "cloture" ? "#374151" : t.status === "rejete" ? "#991b1b" : "white",
+                            color: t.status === "resolu" ? "#155724" : t.status === "en_attente_analyse" ? "#92400e" : t.status === "en_cours" ? "#8B4513" : t.status === "cloture" ? "#374151" : t.status === "rejete" ? "#991b1b" : t.status === "assigne_technicien" ? "#0c4a6e" : "white",
                             whiteSpace: "nowrap",
                             display: "inline-block"
                           }}>
@@ -5574,12 +5587,12 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                 <strong>Priorité :</strong>
                 <span style={{
                   marginLeft: "8px",
-                  padding: "4px 10px",
-                  borderRadius: "12px",
+                  padding: "6px 12px",
+                  borderRadius: "20px",
                   fontSize: "12px",
                   fontWeight: "500",
-                  background: ticketDetails.priority === "critique" ? "#f44336" : ticketDetails.priority === "haute" ? "#fed7aa" : ticketDetails.priority === "moyenne" ? "#dbeafe" : ticketDetails.priority === "faible" ? "#fee2e2" : "#9e9e9e",
-                  color: ticketDetails.priority === "haute" ? "#92400e" : ticketDetails.priority === "faible" ? "#991b1b" : ticketDetails.priority === "moyenne" ? "#1e40af" : "white"
+                  background: ticketDetails.priority === "critique" ? "#fee2e2" : ticketDetails.priority === "haute" ? "#fed7aa" : ticketDetails.priority === "moyenne" ? "#dbeafe" : ticketDetails.priority === "faible" ? "#fee2e2" : "#9e9e9e",
+                  color: ticketDetails.priority === "critique" ? "#991b1b" : ticketDetails.priority === "haute" ? "#92400e" : ticketDetails.priority === "faible" ? "#991b1b" : ticketDetails.priority === "moyenne" ? "#1e40af" : "#374151"
                 }}>
                   {ticketDetails.priority}
                 </span>
@@ -7809,7 +7822,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
             width: "100%",
             height: "100vh",
             background: "white",
-            overflow: "hidden"
+            overflow: "hidden",
+            maxHeight: "100vh"
           }}>
             {/* Panneau gauche - Liste des tickets avec notifications */}
             <div style={{
@@ -7819,8 +7833,10 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               flexDirection: "column",
               background: "#f8f9fa",
               height: "100%",
+              maxHeight: "100%",
               overflow: "hidden",
-              flexShrink: 0
+              flexShrink: 0,
+              position: "relative"
             }}>
               <div style={{
                 padding: "28px 20px 20px 20px",
@@ -7829,7 +7845,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                 justifyContent: "space-between",
                 alignItems: "center",
                 background: "white",
-                borderRadius: "8px 0 0 0"
+                borderRadius: "8px 0 0 0",
+                flexShrink: 0
               }}>
                 <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "600", color: "#333" }}>
                   Tickets avec notifications
@@ -7861,7 +7878,9 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               <div style={{
                 flex: 1,
                 overflowY: "auto",
-                padding: "10px"
+                overflowX: "hidden",
+                padding: "10px",
+                minHeight: 0
               }}>
                 {notificationsTickets.length === 0 ? (
                   <div style={{
@@ -7988,7 +8007,10 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               display: "flex",
               flexDirection: "column",
               overflow: "hidden",
-              background: "white"
+              background: "white",
+              position: "relative",
+              height: "100%",
+              maxHeight: "100%"
             }}>
               {selectedNotificationTicketDetails ? (
                 <>
@@ -7996,7 +8018,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     padding: "28px 20px 20px 20px",
                     borderBottom: "1px solid #e0e0e0",
                     background: "white",
-                    borderRadius: "0 8px 0 0"
+                    borderRadius: "0 8px 0 0",
+                    flexShrink: 0
                   }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "600", color: "#333" }}>Détails du ticket #{selectedNotificationTicketDetails.number}</h3>
@@ -8006,7 +8029,9 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                   <div style={{
                     flex: 1,
                     overflowY: "auto",
-                    padding: "20px"
+                    overflowX: "hidden",
+                    padding: "20px",
+                    minHeight: 0
                   }}>
                     <div style={{ marginBottom: "16px" }}>
                       <strong>Titre :</strong>
@@ -8031,8 +8056,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                           borderRadius: "4px",
                           fontSize: "12px",
                           fontWeight: "500",
-                          background: selectedNotificationTicketDetails.priority === "critique" ? "#f44336" : selectedNotificationTicketDetails.priority === "haute" ? "#fed7aa" : selectedNotificationTicketDetails.priority === "moyenne" ? "#ffc107" : "#9e9e9e",
-                          color: selectedNotificationTicketDetails.priority === "haute" ? "#92400e" : "white"
+                          background: selectedNotificationTicketDetails.priority === "critique" ? "#fee2e2" : selectedNotificationTicketDetails.priority === "haute" ? "#fed7aa" : selectedNotificationTicketDetails.priority === "moyenne" ? "#ffc107" : "#9e9e9e",
+                          color: selectedNotificationTicketDetails.priority === "critique" ? "#991b1b" : selectedNotificationTicketDetails.priority === "haute" ? "#92400e" : "white"
                         }}>
                           {selectedNotificationTicketDetails.priority}
                         </span>
