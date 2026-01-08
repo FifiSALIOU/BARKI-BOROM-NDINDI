@@ -2341,7 +2341,17 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                   .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
                   .slice(0, activeSection === "dashboard" ? 5 : tickets.length)
                   .map((t) => (
-                  <tr key={t.id} style={{ borderBottom: "1px solid #eee", cursor: "pointer" }}>
+                  <tr 
+                    key={t.id} 
+                    onClick={() => loadTicketDetails(t.id)}
+                    style={{ borderBottom: "1px solid #eee", cursor: "pointer" }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = "#f9fafb";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = "transparent";
+                    }}
+                  >
                     <td style={{ padding: "16px", color: "#333", fontSize: "14px" }}>#{t.number}</td>
                     <td style={{ padding: "16px", color: "#333", fontSize: "14px" }}>{t.title}</td>
                     <td style={{ padding: "16px" }}>
