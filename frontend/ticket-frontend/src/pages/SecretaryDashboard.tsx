@@ -3139,22 +3139,11 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
         {/* Section Notifications dans le contenu principal */}
         {activeSection === "notifications" && (
           <div style={{
-            flex: 1,
-            padding: "30px",
-            overflow: "hidden",
-            paddingTop: "80px",
             display: "flex",
             width: "100%",
-            height: "calc(100vh - 80px)",
-            marginTop: "-30px",
-            marginLeft: "-30px",
-            marginRight: "-30px",
-            marginBottom: "-30px",
+            height: "100vh",
             background: "white",
-            borderRadius: "8px",
-            boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-            position: "relative",
-            maxHeight: "calc(100vh - 80px)"
+            overflow: "hidden"
           }}>
             {/* Panneau gauche - Liste des tickets avec notifications */}
             <div style={{
@@ -3163,12 +3152,9 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               display: "flex",
               flexDirection: "column",
               background: "#f8f9fa",
-              borderRadius: "8px 0 0 8px",
               height: "100%",
-              maxHeight: "100%",
               overflow: "hidden",
-              flexShrink: 0,
-              position: "relative"
+              flexShrink: 0
             }}>
               <div style={{
                 padding: "28px 20px 20px 20px",
@@ -3326,7 +3312,6 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               flexDirection: "column",
               overflow: "hidden",
               background: "white",
-              borderRadius: "0 8px 8px 0",
               position: "relative",
               height: "100%",
               maxHeight: "100%"

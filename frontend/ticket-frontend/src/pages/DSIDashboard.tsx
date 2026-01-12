@@ -13335,14 +13335,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               <div style={{
                 display: "flex",
                 width: "100%",
-                height: "calc(100vh - 80px)",
-                marginTop: "-30px",
-                marginLeft: "-30px",
-                marginRight: "-30px",
-                marginBottom: "-30px",
+                height: "100vh",
                 background: "white",
-                borderRadius: "8px",
-                boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
                 overflow: "hidden"
               }}>
                 {/* Panneau gauche - Liste des tickets avec notifications */}
@@ -13352,7 +13346,6 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                   display: "flex",
                   flexDirection: "column",
                   background: "#f8f9fa",
-                  borderRadius: "8px 0 0 8px",
                   height: "100%",
                   overflow: "hidden",
                   flexShrink: 0
@@ -13509,8 +13502,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                   display: "flex",
                   flexDirection: "column",
                   overflow: "hidden",
-                  background: "white",
-                  borderRadius: "0 8px 8px 0"
+                  background: "white"
                 }}>
                   {selectedNotificationTicketDetails ? (
                     <>
