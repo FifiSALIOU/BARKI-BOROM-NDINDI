@@ -142,6 +142,7 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [openActionsMenuFor, setOpenActionsMenuFor] = useState<string | null>(null);
   const [ticketSearchQuery, setTicketSearchQuery] = useState<string>("");
+  const [delegatedTicketsByDSI, setDelegatedTicketsByDSI] = useState<Set<string>>(new Set());
 
   // Fonction pour obtenir le libellé d'une priorité
   function getPriorityLabel(priority: string): string {
@@ -361,6 +362,120 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
     
     return () => clearInterval(interval);
   }, [token, ticketSearchQuery]);
+
+  // Identifier les tickets délégués par le DSI
+  // Un ticket est délégué par le DSI si :
+  // 1. Le ticket a secretary_id === userInfo.id (délégué à cet Adjoint DSI)
+  // 2. ET il y a une entrée dans l'historique créée par le DSI (pas l'Adjoint DSI) qui délègue le ticket
+  // Cela permet de distinguer les délégations du DSI des assignations par l'Adjoint DSI
+  useEffect(() => {
+    async function identifyDelegatedTickets() {
+      if (roleName !== "Adjoint DSI" || !userInfo?.id) {
+        setDelegatedTicketsByDSI(new Set());
+        return;
+      }
+
+      if (allTickets.length === 0) {
+        setDelegatedTicketsByDSI(new Set());
+        return;
+      }
+
+      const delegatedTicketsSet = new Set<string>();
+      const adjointIdStr = String(userInfo.id);
+      
+      // Filtrer les tickets qui ont un secretary_id correspondant à l'Adjoint DSI connecté
+      const ticketsWithSecretaryId = allTickets.filter(
+        (t) => t.secretary_id === userInfo.id
+      );
+
+      // Vérifier l'historique de chaque ticket pour confirmer qu'il a été délégué par le DSI
+      for (const ticket of ticketsWithSecretaryId) {
+        try {
+          const historyRes = await fetch(
+            `http://localhost:8000/tickets/${ticket.id}/history`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+          
+          if (historyRes.ok) {
+            const history: TicketHistory[] = await historyRes.json();
+
+            // Chercher une entrée d'historique qui indique une délégation par le DSI
+            // Critères STRICTS pour une délégation du DSI :
+            // 1. L'entrée a été créée par quelqu'un d'autre que l'Adjoint DSI (donc le DSI)
+            // 2. La raison DOIT contenir des mots-clés de délégation ("Délégation", "délégué")
+            // 3. Le statut passe à "en_attente_analyse" (pour confirmer)
+            // 4. Ce n'est PAS une assignation
+            // IMPORTANT : On exige que la raison contienne des mots-clés de délégation pour éviter
+            // les faux positifs (comme les tickets créés initialement avec statut "en_attente_analyse")
+            const delegationEntry = history.find((h: TicketHistory) => {
+              const reason = h.reason || "";
+              const reasonLower = reason.toLowerCase();
+              
+              // L'entrée doit avoir été créée par quelqu'un d'autre que l'Adjoint DSI connecté
+              // (donc par le DSI)
+              const createdByDSI = String(h.user_id) !== adjointIdStr;
+              
+              if (!createdByDSI) {
+                return false; // Si c'est l'Adjoint DSI qui a créé l'entrée, ce n'est pas une délégation
+              }
+              
+              // Vérifier que ce n'est PAS une assignation
+              // Les assignations passent le statut à "assigne_technicien"
+              const isAssignment = 
+                h.new_status === "assigne_technicien" ||
+                reasonLower.includes("assignation") || 
+                reasonLower.includes("assigné") ||
+                reasonLower.includes("assigner") ||
+                reasonLower.includes("assignation par");
+              
+              if (isAssignment) {
+                return false; // Si c'est une assignation, ce n'est pas une délégation
+              }
+              
+              // CRITÈRE PRINCIPAL : La raison DOIT contenir des mots-clés de délégation
+              // C'est le seul moyen fiable de distinguer une délégation d'une création de ticket
+              const hasDelegationKeywords =
+                reasonLower.includes("délégation") ||
+                reasonLower.includes("délégué") ||
+                reasonLower.includes("délégation au adjoint dsi") ||
+                reasonLower.includes("délégué par dsi");
+              
+              if (!hasDelegationKeywords) {
+                return false; // Sans mots-clés de délégation, ce n'est pas une délégation
+              }
+              
+              // Le statut doit passer à "en_attente_analyse" (c'est le cas lors d'une délégation)
+              const statusChangedToPending = 
+                h.new_status === "en_attente_analyse";
+              
+              // C'est une délégation si :
+              // - La raison contient des mots-clés de délégation (OBLIGATOIRE)
+              // - ET le statut passe à "en_attente_analyse" (pour confirmer)
+              // - ET ce n'est pas une assignation
+              // - ET l'entrée a été créée par le DSI (pas l'Adjoint DSI)
+              return hasDelegationKeywords && statusChangedToPending;
+            });
+
+            if (delegationEntry) {
+              delegatedTicketsSet.add(ticket.id);
+            }
+          }
+        } catch (err) {
+          console.error(
+            `Erreur lors de la vérification de l'historique du ticket ${ticket.id}:`,
+            err
+          );
+        }
+      }
+
+      setDelegatedTicketsByDSI(delegatedTicketsSet);
+      console.log(`Tickets délégués par DSI à l'Adjoint DSI (${userInfo.id}): ${delegatedTicketsSet.size} tickets`);
+    }
+
+    void identifyDelegatedTickets();
+  }, [allTickets, roleName, userInfo?.id, token]);
 
   // Debounce pour la recherche de tickets
   useEffect(() => {
@@ -2497,11 +2612,12 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
   }
   
   // Filtre par délégation (UNIQUEMENT pour l'adjoint DSI)
+  // Utiliser delegatedTicketsByDSI pour vérifier les tickets réellement délégués par le DSI
   if (roleName === "Adjoint DSI" && delegationFilter !== "all") {
     if (delegationFilter === "delegated") {
-      filteredTickets = filteredTickets.filter((t) => t.secretary_id === userInfo?.id);
+      filteredTickets = filteredTickets.filter((t) => delegatedTicketsByDSI.has(t.id));
     } else if (delegationFilter === "not_delegated") {
-      filteredTickets = filteredTickets.filter((t) => t.secretary_id !== userInfo?.id);
+      filteredTickets = filteredTickets.filter((t) => !delegatedTicketsByDSI.has(t.id));
     }
   }
 
@@ -3936,11 +4052,12 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                 }
                 
                 // Filtre par délégation (UNIQUEMENT pour l'adjoint DSI)
+                // Utiliser delegatedTicketsByDSI pour vérifier les tickets réellement délégués par le DSI
                 if (roleName === "Adjoint DSI" && delegationFilter !== "all") {
                   if (delegationFilter === "delegated") {
-                    filtered = filtered.filter((t) => t.secretary_id === userInfo?.id);
+                    filtered = filtered.filter((t) => delegatedTicketsByDSI.has(t.id));
                   } else if (delegationFilter === "not_delegated") {
-                    filtered = filtered.filter((t) => t.secretary_id !== userInfo?.id);
+                    filtered = filtered.filter((t) => !delegatedTicketsByDSI.has(t.id));
                   }
                 }
                 
@@ -3975,7 +4092,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
             </tr>
           ) : (
             recentTickets.map((t) => {
-              const isDelegatedToMe = roleName === "Adjoint DSI" && t.secretary_id === userInfo?.id;
+              const isDelegatedToMe = roleName === "Adjoint DSI" && delegatedTicketsByDSI.has(t.id);
               return (
               <tr key={t.id} data-ticket-id={t.id} style={{ borderBottom: "1px solid #eee", background: "white" }}>
                 <td style={{ padding: "12px 16px" }}>#{t.number}</td>
@@ -5005,7 +5122,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     </tr>
                   ) : (
                     filteredTickets.map((t) => {
-                      const isDelegatedToMe = roleName === "Adjoint DSI" && t.secretary_id === userInfo?.id;
+                      const isDelegatedToMe = roleName === "Adjoint DSI" && delegatedTicketsByDSI.has(t.id);
                       return (
                       <tr key={t.id} data-ticket-id={t.id} style={{ borderBottom: "1px solid #eee", background: "white" }}>
                         <td style={{ padding: "12px 16px" }}>#{t.number}</td>
