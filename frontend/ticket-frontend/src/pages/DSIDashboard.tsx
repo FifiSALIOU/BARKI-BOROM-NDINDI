@@ -8094,20 +8094,16 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                                 height: "32px",
                                 borderRadius: "50%",
                                 backgroundColor: index === 0 
-                                  ? "rgba(234, 179, 8, 0.2)" // bg-yellow-500/20
-                                  : index === 1 
-                                  ? "rgba(209, 213, 219, 0.3)" // bg-gray-300/30
-                                  : "rgba(249, 115, 22, 0.2)", // bg-orange-500/20
+                                  ? "#FF9500" // Rang 1 : orange
+                                  : "#E5E7EB", // Autres rangs : gris clair
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
                                 fontSize: "14px",
                                 fontWeight: 600,
                                 color: index === 0 
-                                  ? "#ca8a04" // text-yellow-600
-                                  : index === 1 
-                                  ? "#4b5563" // text-gray-600
-                                  : "#ea580c", // text-orange-600
+                                  ? "#FFFFFF" // Rang 1 : blanc
+                                  : "#6B7280", // Autres rangs : gris moyen
                                 flexShrink: 0
                               }}
                             >
@@ -8119,10 +8115,24 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                               <div style={{ fontSize: "16px", fontWeight: 500, color: "#111827", marginBottom: "4px" }}>
                                 {tech.technicien}
                               </div>
-                              <div style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "14px", color: "#4B5563", marginTop: "4px" }}>
-                                <Clock className="h-3 w-3" />
-                                <span>{tech.avgTimeHours > 0 ? `${tech.avgTimeHours.toFixed(1)}h moy.` : "N/A"}</span>
-                              </div>
+                            </div>
+
+                            {/* Badge temps moyen */}
+                            <div 
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "4px",
+                                backgroundColor: "#E5E7EB",
+                                padding: "4px 8px",
+                                borderRadius: "6px",
+                                fontSize: "14px",
+                                color: "#4B5563",
+                                flexShrink: 0
+                              }}
+                            >
+                              <Clock className="h-3 w-3" style={{ width: "12px", height: "12px", color: "#4B5563" }} />
+                              <span>{tech.avgTimeHours > 0 ? `${tech.avgTimeHours.toFixed(1)}h moy.` : "N/A"}</span>
                             </div>
 
                             {/* Badge de performance */}
@@ -8131,8 +8141,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                                 display: "flex",
                                 alignItems: "center",
                                 gap: "8px",
-                                backgroundColor: "#DCFCE7",
-                                color: "#15803D",
+                                backgroundColor: "#D1FAE5",
+                                color: "#047857",
                                 padding: "6px 12px",
                                 borderRadius: "8px",
                                 fontSize: "14px",
@@ -8140,7 +8150,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                                 flexShrink: 0
                               }}
                             >
-                              <TrendingUp className="h-4 w-4" />
+                              <TrendingUp className="h-4 w-4" style={{ width: "16px", height: "16px", color: "#047857" }} />
                               <span>{tech.performancePercent}%</span>
                             </div>
                           </div>
