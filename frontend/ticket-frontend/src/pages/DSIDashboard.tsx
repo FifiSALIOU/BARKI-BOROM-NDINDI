@@ -5587,7 +5587,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(6, minmax(150px, 1fr))",
+          gridTemplateColumns: "repeat(3, minmax(200px, 1fr))",
           gap: "10px",
           margin: "20px 0",
         }}
