@@ -6591,7 +6591,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
             </div>
           )}
 
-          {activeSection === "reports" && (roleName === "Adjoint DSI" || roleName === "DSI" || roleName === "Admin") && (
+          {activeSection === "reports" && (roleName === "DSI" || roleName === "Admin") && (
             <>
               <h2 style={{ marginBottom: "24px", fontSize: "28px", fontWeight: "600", color: "#333" }}>Rapports</h2>
               
