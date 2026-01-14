@@ -1114,7 +1114,7 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
         <div style={{ marginTop: "auto" }}>
           {/* Bouton Notifications */}
           <div
-            onClick={() => setActiveSection("notifications")}
+            onClick={() => navigate("/dashboard/techniciens/notifications")}
             style={{
               display: "flex",
               alignItems: "center",
