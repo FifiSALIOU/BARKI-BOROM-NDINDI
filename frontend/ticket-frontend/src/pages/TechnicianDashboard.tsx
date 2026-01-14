@@ -2272,8 +2272,7 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
 
             {/* Section Tickets en cours */}
             {activeSection === "tickets-en-cours" && (
-              <div>
-                <h2 style={{ marginBottom: "24px" }}>Tickets en cours</h2>
+              <div style={{ marginTop: "24px" }}>
                 {/* Tickets Cards */}
                 <div
                   style={{
@@ -2672,8 +2671,7 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
             )}
 
             {activeSection === "tickets-resolus" && (
-              <div>
-                <h2 style={{ marginBottom: "24px" }}>Tickets Résolus</h2>
+              <div style={{ marginTop: "24px" }}>
                 {/* Tickets Cards */}
                 <div
                   style={{
@@ -2999,8 +2997,7 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
             )}
 
             {activeSection === "tickets-rejetes" && (
-              <div>
-                <h2 style={{ marginBottom: "24px" }}>Tickets Rejetés</h2>
+              <div style={{ marginTop: "24px" }}>
                 {/* Tickets Cards */}
                 <div
                   style={{
