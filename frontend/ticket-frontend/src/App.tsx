@@ -133,6 +133,10 @@ function App() {
           element={token ? <TechnicianDashboard token={token} /> : <Navigate to="/" replace />}
         />
         <Route
+          path="/dashboard/techniciens/notifications"
+          element={token ? <TechnicianDashboard token={token} /> : <Navigate to="/" replace />}
+        />
+        <Route
           path="/dashboard/dsi"
           element={token ? <DSIDashboard token={token} /> : <Navigate to="/" replace />}
         />

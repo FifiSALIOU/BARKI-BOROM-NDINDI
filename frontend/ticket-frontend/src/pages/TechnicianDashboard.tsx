@@ -104,6 +104,7 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
     if (location.pathname === "/dashboard/techniciens/ticketsresolus") return "tickets-resolus";
     if (location.pathname === "/dashboard/techniciens/ticketsrejetes") return "tickets-rejetes";
     if (location.pathname === "/dashboard/techniciens/actifs") return "actifs";
+    if (location.pathname === "/dashboard/techniciens/notifications") return "notifications";
     if (location.pathname === "/dashboard/techniciens") return "dashboard";
     return activeSection;
   }
@@ -143,6 +144,15 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
   // Fonction helper pour formater le numéro de ticket en "TKT-XXX"
   const formatTicketNumber = (number: number): string => {
     return `TKT-${number.toString().padStart(3, '0')}`;
+  };
+
+  // Fonction helper pour formater le message de notification en remplaçant "#X" par "TKT-XXX"
+  const formatNotificationMessage = (message: string): string => {
+    // Remplacer les patterns "#X" ou "ticket #X" par "TKT-XXX"
+    return message.replace(/#(\d+)/g, (match, number) => {
+      const ticketNumber = parseInt(number, 10);
+      return `TKT-${ticketNumber.toString().padStart(3, '0')}`;
+    });
   };
 
   // Fonction helper pour obtenir les initiales
@@ -476,7 +486,7 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
     
     // Ouvrir la vue des tickets avec notifications dans le contenu principal
     setShowNotifications(false);
-    setActiveSection("notifications");
+    navigate("/dashboard/techniciens/notifications");
     setSelectedNotificationTicket(notification.ticket_id);
     
     // Charger les tickets avec notifications
@@ -485,14 +495,14 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
 
   // Charger les tickets avec notifications quand la vue s'ouvre
   useEffect(() => {
-    if ((activeSection === "notifications" || showNotificationsTicketsView) && notifications.length > 0) {
+    if ((currentActiveSection === "notifications" || showNotificationsTicketsView) && notifications.length > 0) {
       void loadNotificationsTickets();
     }
-  }, [activeSection, showNotificationsTicketsView, notifications.length]);
+  }, [currentActiveSection, showNotificationsTicketsView, notifications.length]);
 
   // Charger automatiquement les détails du ticket sélectionné dans la section notifications
   useEffect(() => {
-    if (activeSection === "notifications" && selectedNotificationTicket) {
+    if (currentActiveSection === "notifications" && selectedNotificationTicket) {
       async function loadDetails() {
         try {
           const res = await fetch(`http://localhost:8000/tickets/${selectedNotificationTicket}`, {
@@ -513,11 +523,11 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
       }
       void loadDetails();
     }
-  }, [activeSection, selectedNotificationTicket, token]);
+  }, [currentActiveSection, selectedNotificationTicket, token]);
 
   // Scroll vers le haut quand la section notifications s'ouvre
   useEffect(() => {
-    if (activeSection === "notifications") {
+    if (currentActiveSection === "notifications") {
       // Attendre un peu pour que le DOM soit mis à jour
       setTimeout(() => {
         // Scroller vers le haut de la fenêtre
@@ -528,7 +538,7 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
         }
       }, 150);
     }
-  }, [activeSection]);
+  }, [currentActiveSection]);
 
 
   async function handleTakeCharge(ticketId: string) {
@@ -3797,7 +3807,7 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                                   color: "#333",
                                   lineHeight: "1.5"
                                 }}>
-                                  Ticket #{ticket.number}
+                                  {formatTicketNumber(ticket.number)}
                                 </p>
                                 <p style={{
                                   margin: "4px 0 0 0",
@@ -3865,7 +3875,7 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                         background: "white",
                         borderRadius: "0 8px 0 0"
                       }}>
-                        <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "600", color: "#333" }}>Détails du ticket #{selectedNotificationTicketDetails.number}</h3>
+                        <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "600", color: "#333" }}>Détails du ticket {formatTicketNumber(selectedNotificationTicketDetails.number)}</h3>
                         {selectedNotificationTicketDetails.status === "rejete" && (
                           <span style={{
                             padding: "6px 12px",
@@ -4204,7 +4214,7 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
             overflowY: "auto"
           }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-              <h3 style={{ margin: 0 }}>Détails du ticket #{ticketDetails.number}</h3>
+              <h3 style={{ margin: 0 }}>Détails du ticket {formatTicketNumber(ticketDetails.number)}</h3>
               {ticketDetails.status === "rejete" && (
                 <span style={{
                   padding: "6px 10px",
@@ -4491,7 +4501,7 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                           color: "#333",
                           lineHeight: "1.5"
                         }}>
-                          {notif.message}
+                          {formatNotificationMessage(notif.message)}
                         </p>
                         <p style={{
                           margin: "4px 0 0 0",
@@ -4721,7 +4731,7 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                     background: "white"
                   }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "600", color: "#333", lineHeight: "1.4" }}>Détails du ticket #{selectedNotificationTicketDetails.number}</h3>
+                      <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "600", color: "#333", lineHeight: "1.4" }}>Détails du ticket {formatTicketNumber(selectedNotificationTicketDetails.number)}</h3>
                       {selectedNotificationTicketDetails.status === "rejete" && (
                         <span style={{
                           padding: "6px 10px",
