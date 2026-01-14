@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
-import { PanelLeft, ClipboardList, Clock3, CheckCircle2, LayoutDashboard, ChevronLeft, ChevronRight, Bell, Search } from "lucide-react";
+import { PanelLeft, ClipboardList, Clock3, CheckCircle2, LayoutDashboard, ChevronLeft, ChevronRight, Bell, Search, Box } from "lucide-react";
 import helpdeskLogo from "../assets/helpdesk-logo.png";
 
 interface Notification {
@@ -999,6 +999,25 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
               </span>
             )}
           </div>
+        </div>
+        <div 
+          onClick={() => setActiveSection("actifs")}
+          style={{ 
+            display: "flex", 
+            alignItems: "center", 
+            gap: "12px", 
+            padding: "10px", 
+            background: activeSection === "actifs" ? "hsl(25, 95%, 53%)" : "transparent", 
+            borderRadius: "8px",
+            cursor: "pointer",
+            transition: "background 0.2s",
+            marginBottom: "8px"
+          }}
+        >
+          <div style={{ width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Box size={18} color={activeSection === "actifs" ? "white" : "rgba(180, 180, 180, 0.7)"} strokeWidth={2} />
+          </div>
+          <div style={{ fontSize: "16px", fontFamily: "'Inter', system-ui, sans-serif", fontWeight: "500" }}>Actifs</div>
         </div>
 
         {/* Section Notifications + Déconnexion en bas */}
