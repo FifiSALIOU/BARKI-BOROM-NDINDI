@@ -115,7 +115,6 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
   const [agencyFilter, setAgencyFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
   const [delegationFilter, setDelegationFilter] = useState<string>("all");
-  const [showReportsDropdown, setShowReportsDropdown] = useState<boolean>(false);
   const [selectedReport, setSelectedReport] = useState<string>("");
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState<number>(0);
@@ -2862,131 +2861,28 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
         </div>
         
         {(roleName === "Adjoint DSI" || roleName === "DSI" || roleName === "Admin") && (
-          <div style={{ position: "relative" }}>
-            <div 
-              onClick={() => setShowReportsDropdown(!showReportsDropdown)}
-              style={{ 
-                display: "flex", 
-                alignItems: "center", 
-                gap: "12px", 
-                padding: "10px", 
-                background: activeSection === "reports" ? "hsl(25, 95%, 53%)" : "transparent",
-                borderRadius: "8px",
-                cursor: "pointer",
-                marginBottom: "8px"
-              }}
-            >
-              <div style={{ width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" fill="none" stroke={activeSection === "reports" ? "white" : "rgba(180, 180, 180, 0.7)"} />
-                  <rect x="6" y="10" width="3" height="11" fill={activeSection === "reports" ? "white" : "rgba(180, 180, 180, 0.7)"} />
-                  <rect x="10.5" y="6" width="3" height="15" fill={activeSection === "reports" ? "white" : "rgba(180, 180, 180, 0.7)"} />
-                  <rect x="15" y="16" width="3" height="5" fill={activeSection === "reports" ? "white" : "rgba(180, 180, 180, 0.7)"} />
-                </svg>
-              </div>
-              <div style={{ flex: 1, fontSize: "16px", fontFamily: "'Inter', system-ui, sans-serif", fontWeight: "500" }}>Rapports</div>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", transition: "transform 0.2s ease" }}>
-                {showReportsDropdown ? (
-                  <ChevronDown size={16} color={activeSection === "reports" ? "white" : "rgba(180, 180, 180, 0.7)"} />
-                ) : (
-                  <ChevronRight size={16} color={activeSection === "reports" ? "white" : "rgba(180, 180, 180, 0.7)"} />
-                )}
-              </div>
+          <div 
+            onClick={() => setActiveSection("reports")}
+            style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              gap: "12px", 
+              padding: "10px", 
+              background: activeSection === "reports" ? "hsl(25, 95%, 53%)" : "transparent",
+              borderRadius: "8px",
+              cursor: "pointer",
+              marginBottom: "8px"
+            }}
+          >
+            <div style={{ width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" fill="none" stroke={activeSection === "reports" ? "white" : "rgba(180, 180, 180, 0.7)"} />
+                <rect x="6" y="10" width="3" height="11" fill={activeSection === "reports" ? "white" : "rgba(180, 180, 180, 0.7)"} />
+                <rect x="10.5" y="6" width="3" height="15" fill={activeSection === "reports" ? "white" : "rgba(180, 180, 180, 0.7)"} />
+                <rect x="15" y="16" width="3" height="5" fill={activeSection === "reports" ? "white" : "rgba(180, 180, 180, 0.7)"} />
+              </svg>
             </div>
-            {showReportsDropdown && (
-              <div style={{ 
-                marginLeft: "48px", 
-                marginTop: "8px", 
-                display: "flex", 
-                flexDirection: "column", 
-                gap: "4px" 
-              }}>
-                <div 
-                  onClick={() => {
-                    setSelectedReport("statistiques");
-                    setActiveSection("reports");
-                  }}
-                  style={{ 
-                    padding: "8px 12px", 
-                    borderRadius: "4px", 
-                    cursor: "pointer",
-                    background: selectedReport === "statistiques" ? "hsl(25, 95%, 53%)" : "transparent"
-                  }}
-                >
-                  Statistiques générales
-                </div>
-                <div 
-                  onClick={() => {
-                    setSelectedReport("metriques");
-                    setActiveSection("reports");
-                  }}
-                  style={{ 
-                    padding: "8px 12px", 
-                    borderRadius: "4px", 
-                    cursor: "pointer",
-                    background: selectedReport === "metriques" ? "hsl(25, 95%, 53%)" : "transparent"
-                  }}
-                >
-                  Métriques de performance
-                </div>
-                <div 
-                  onClick={() => {
-                    setSelectedReport("agence");
-                    setActiveSection("reports");
-                  }}
-                  style={{ 
-                    padding: "8px 12px", 
-                    borderRadius: "4px", 
-                    cursor: "pointer",
-                    background: selectedReport === "agence" ? "hsl(25, 95%, 53%)" : "transparent"
-                  }}
-                >
-                  Analyses par agence
-                </div>
-                <div 
-                  onClick={() => {
-                    setSelectedReport("technicien");
-                    setActiveSection("reports");
-                  }}
-                  style={{ 
-                    padding: "8px 12px", 
-                    borderRadius: "4px", 
-                    cursor: "pointer",
-                    background: selectedReport === "technicien" ? "hsl(25, 95%, 53%)" : "transparent"
-                  }}
-                >
-                  Analyses par technicien
-                </div>
-                <div 
-                  onClick={() => {
-                    setSelectedReport("evolutions");
-                    setActiveSection("reports");
-                  }}
-                  style={{ 
-                    padding: "8px 12px", 
-                    borderRadius: "4px", 
-                    cursor: "pointer",
-                    background: selectedReport === "evolutions" ? "hsl(25, 95%, 53%)" : "transparent"
-                  }}
-                >
-                  Évolutions dans le temps
-                </div>
-                <div 
-                  onClick={() => {
-                    setSelectedReport("recurrents");
-                    setActiveSection("reports");
-                  }}
-                  style={{ 
-                    padding: "8px 12px", 
-                    borderRadius: "4px", 
-                    cursor: "pointer",
-                    background: selectedReport === "recurrents" ? "hsl(25, 95%, 53%)" : "transparent"
-                  }}
-                >
-                  Problèmes récurrents
-                </div>
-              </div>
-            )}
+            <div style={{ fontSize: "16px", fontFamily: "'Inter', system-ui, sans-serif", fontWeight: "500" }}>Statistiques</div>
           </div>
         )}
 
