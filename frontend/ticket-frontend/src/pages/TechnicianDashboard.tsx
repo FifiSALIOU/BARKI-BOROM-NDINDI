@@ -4014,65 +4014,6 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
           </div>
       )}
 
-      {requestInfoTicket && (
-        <div style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: "rgba(0,0,0,0.5)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          zIndex: 1000
-        }}>
-          <div style={{
-            background: "white",
-            padding: "24px",
-            borderRadius: "8px",
-            maxWidth: "500px",
-            width: "90%"
-          }}>
-            <h3>Demander des informations à l'utilisateur</h3>
-            <p style={{ fontSize: "14px", color: "#666", marginTop: "8px", marginBottom: "12px" }}>
-              Cette demande sera envoyée à l'utilisateur créateur du ticket.
-            </p>
-            <textarea
-              value={requestInfoText}
-              onChange={(e) => setRequestInfoText(e.target.value)}
-              placeholder="Quelles informations avez-vous besoin de l'utilisateur ?"
-              style={{
-                width: "100%",
-                minHeight: "100px",
-                padding: "8px",
-                marginTop: "12px",
-                border: "1px solid #ddd",
-                borderRadius: "4px"
-              }}
-            />
-            <div style={{ display: "flex", gap: "8px", marginTop: "16px" }}>
-              <button
-                onClick={() => handleRequestInfo(requestInfoTicket)}
-                disabled={loading || !requestInfoText.trim()}
-                style={{ flex: 1, padding: "10px", backgroundColor: "#17a2b8", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}
-              >
-                Envoyer
-              </button>
-              <button
-                onClick={() => {
-                  setRequestInfoTicket(null);
-                  setRequestInfoText("");
-                }}
-                style={{ flex: 1, padding: "10px", backgroundColor: "#6c757d", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}
-              >
-                Annuler
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Modal pour voir les détails du ticket */}
       {viewTicketDetails && ticketDetails && (
         <div style={{
@@ -4864,6 +4805,67 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                 onClick={() => {
                   setResolveTicket(null);
                   setResolutionSummary("");
+                }}
+                style={{ flex: 1, padding: "10px", backgroundColor: "#6c757d", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}
+              >
+                Annuler
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal pour demander des informations */}
+      {requestInfoTicket && (
+        <div style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: "rgba(0,0,0,0.5)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 10000,
+          pointerEvents: "auto"
+        }}>
+          <div style={{
+            background: "white",
+            padding: "24px",
+            borderRadius: "8px",
+            maxWidth: "500px",
+            width: "90%"
+          }}>
+            <h3>Demander des informations à l'utilisateur</h3>
+            <p style={{ fontSize: "14px", color: "#666", marginTop: "8px", marginBottom: "12px" }}>
+              Cette demande sera envoyée à l'utilisateur créateur du ticket.
+            </p>
+            <textarea
+              value={requestInfoText}
+              onChange={(e) => setRequestInfoText(e.target.value)}
+              placeholder="Quelles informations avez-vous besoin de l'utilisateur ?"
+              style={{
+                width: "100%",
+                minHeight: "100px",
+                padding: "8px",
+                marginTop: "12px",
+                border: "1px solid #ddd",
+                borderRadius: "4px"
+              }}
+            />
+            <div style={{ display: "flex", gap: "8px", marginTop: "16px" }}>
+              <button
+                onClick={() => handleRequestInfo(requestInfoTicket)}
+                disabled={loading || !requestInfoText.trim()}
+                style={{ flex: 1, padding: "10px", backgroundColor: "#17a2b8", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}
+              >
+                Envoyer
+              </button>
+              <button
+                onClick={() => {
+                  setRequestInfoTicket(null);
+                  setRequestInfoText("");
                 }}
                 style={{ flex: 1, padding: "10px", backgroundColor: "#6c757d", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}
               >
