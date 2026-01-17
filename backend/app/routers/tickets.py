@@ -149,7 +149,7 @@ def list_my_tickets(
 
 @router.get("/", response_model=List[schemas.TicketRead])
 def list_all_tickets(
-    search: Optional[str] = Query(None, description="Rechercher par ID, Titre ou Description"),
+    search: Optional[str] = Query(None, description="Rechercher par ID, Numéro, Titre ou Description"),
     db: Session = Depends(get_db),
     current_user: models.User = Depends(
         require_role("Secrétaire DSI", "Adjoint DSI", "DSI", "Admin")
@@ -166,11 +166,31 @@ def list_all_tickets(
     
     # Ajouter le filtre de recherche si fourni
     if search:
-        search_filter = or_(
-            cast(models.Ticket.id, String).ilike(f"%{search}%"),
-            models.Ticket.title.ilike(f"%{search}%"),
-            models.Ticket.description.ilike(f"%{search}%")
-        )
+        # Essayer de convertir la recherche en nombre pour une recherche exacte
+        search_number = None
+        try:
+            search_number = int(search.strip())
+        except (ValueError, AttributeError):
+            pass
+        
+        # Construire le filtre de recherche
+        if search_number is not None:
+            # Si la recherche est un nombre pur, faire UNIQUEMENT une recherche exacte par numéro de ticket
+            # (le numéro visible par l'utilisateur, pas l'ID interne)
+            # Cela évite les faux positifs si l'ID diffère du numéro
+            search_conditions = [
+                models.Ticket.number == search_number  # Recherche exacte par numéro uniquement
+            ]
+        else:
+            # Si ce n'est pas un nombre, faire une recherche partielle sur tous les champs
+            search_conditions = [
+                cast(models.Ticket.id, String).ilike(f"%{search}%"),
+                models.Ticket.title.ilike(f"%{search}%"),
+                models.Ticket.description.ilike(f"%{search}%"),
+                cast(models.Ticket.number, String).ilike(f"%{search}%")
+            ]
+        
+        search_filter = or_(*search_conditions)
         query = query.filter(search_filter)
     
     tickets = query.order_by(models.Ticket.created_at.desc()).all()
@@ -179,7 +199,7 @@ def list_all_tickets(
 
 @router.get("/assigned", response_model=List[schemas.TicketRead])
 def list_assigned_tickets(
-    search: Optional[str] = Query(None, description="Rechercher par ID, Titre ou Description"),
+    search: Optional[str] = Query(None, description="Rechercher par ID, Numéro, Titre ou Description"),
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
@@ -195,13 +215,33 @@ def list_assigned_tickets(
     
     # Ajouter le filtre de recherche si fourni
     if search:
-        search_filter = or_(
-            cast(models.Ticket.id, String).ilike(f"%{search}%"),
-            models.Ticket.title.ilike(f"%{search}%"),
-            models.Ticket.description.ilike(f"%{search}%")
-        )
+        # Essayer de convertir la recherche en nombre pour une recherche exacte
+        search_number = None
+        try:
+            search_number = int(search.strip())
+        except (ValueError, AttributeError):
+            pass
+        
+        # Construire le filtre de recherche
+        if search_number is not None:
+            # Si la recherche est un nombre pur, faire UNIQUEMENT une recherche exacte par numéro de ticket
+            # (le numéro visible par l'utilisateur, pas l'ID interne)
+            # Cela évite les faux positifs si l'ID diffère du numéro
+            search_conditions = [
+                models.Ticket.number == search_number  # Recherche exacte par numéro uniquement
+            ]
+        else:
+            # Si ce n'est pas un nombre, faire une recherche partielle sur tous les champs
+            search_conditions = [
+                cast(models.Ticket.id, String).ilike(f"%{search}%"),
+                models.Ticket.title.ilike(f"%{search}%"),
+                models.Ticket.description.ilike(f"%{search}%"),
+                cast(models.Ticket.number, String).ilike(f"%{search}%")
+            ]
+        
+        search_filter = or_(*search_conditions)
         query = query.filter(search_filter)
-    
+
     tickets = query.order_by(models.Ticket.created_at.desc()).all()
     return tickets
 
