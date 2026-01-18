@@ -14860,7 +14860,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
             maxHeight: "90vh",
             overflowY: "auto"
           }}>
-            <h3 style={{ marginBottom: "16px", color: "#007bff" }}>Assigner le ticket</h3>
+            <h3 style={{ marginBottom: "16px", color: "#f97316" }}>Assigner le ticket</h3>
             
             {/* Informations du ticket */}
             {(() => {
@@ -14946,9 +14946,9 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                 disabled={loading}
                 style={{
                   padding: "10px 20px",
-                  background: "#6c757d",
-                  color: "white",
-                  border: "none",
+                  background: "white",
+                  color: "black",
+                  border: "1px solid #ddd",
                   borderRadius: "4px",
                   cursor: loading ? "not-allowed" : "pointer",
                   fontSize: "14px",
@@ -14962,7 +14962,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                 disabled={loading || !selectedTechnician}
                 style={{
                   padding: "10px 20px",
-                  background: "#007bff",
+                  background: "#f97316",
                   color: "white",
                   border: "none",
                   borderRadius: "4px",
@@ -14982,7 +14982,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
       {showDelegateModal && delegateTicketId && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
           <div style={{ background: "white", padding: "24px", borderRadius: "8px", maxWidth: "600px", width: "90%", maxHeight: "90vh", overflowY: "auto" }}>
-            <h3 style={{ marginBottom: "16px", color: "#0ea5e9" }}>Déléguer à un adjoint DSI</h3>
+            <h3 style={{ marginBottom: "16px", color: "#f97316" }}>Déléguer à un adjoint DSI</h3>
             {(() => {
               const ticket = allTickets.find(t => t.id === delegateTicketId);
               return ticket ? (
@@ -15034,14 +15034,14 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                   setAssignmentNotes("");
                 }}
                 disabled={loading}
-                style={{ padding: "10px 20px", background: "#6c757d", color: "white", border: "none", borderRadius: "4px", cursor: loading ? "not-allowed" : "pointer", fontSize: "14px", fontWeight: "500" }}
+                style={{ padding: "10px 20px", background: "white", color: "black", border: "1px solid #ddd", borderRadius: "4px", cursor: loading ? "not-allowed" : "pointer", fontSize: "14px", fontWeight: "500" }}
               >
                 Annuler
               </button>
               <button
                 onClick={() => delegateTicketId && handleDelegate(delegateTicketId)}
                 disabled={loading || !selectedAdjoint}
-                style={{ padding: "10px 20px", background: "#0ea5e9", color: "white", border: "none", borderRadius: "4px", cursor: loading || !selectedAdjoint ? "not-allowed" : "pointer", fontSize: "14px", fontWeight: "500", opacity: loading || !selectedAdjoint ? 0.6 : 1 }}
+                style={{ padding: "10px 20px", background: "#f97316", color: "white", border: "none", borderRadius: "4px", cursor: loading || !selectedAdjoint ? "not-allowed" : "pointer", fontSize: "14px", fontWeight: "500", opacity: loading || !selectedAdjoint ? 0.6 : 1 }}
               >
                 {loading ? "Délégation..." : "Confirmer la délégation"}
               </button>

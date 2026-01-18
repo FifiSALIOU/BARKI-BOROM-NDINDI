@@ -9404,7 +9404,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               maxHeight: "90vh",
               overflowY: "auto"
             }}>
-              <h3 style={{ marginBottom: "16px", color: "#0ea5e9" }}>Assigner le ticket à un technicien</h3>
+              <h3 style={{ marginBottom: "16px", color: "#f97316" }}>Assigner le ticket à un technicien</h3>
               <div style={{ marginBottom: "20px", padding: "12px", background: "#f8f9fa", borderRadius: "4px" }}>
                 <div style={{ marginBottom: "8px" }}>
                   <strong>Ticket #{ticket.number}:</strong> {ticket.title}
@@ -9461,14 +9461,14 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     setAssignmentNotes("");
                   }}
                   disabled={loading}
-                  style={{ padding: "10px 20px", background: "#6c757d", color: "white", border: "none", borderRadius: "4px", cursor: loading ? "not-allowed" : "pointer", fontSize: "14px", fontWeight: "500" }}
+                  style={{ padding: "10px 20px", background: "white", color: "black", border: "1px solid #ddd", borderRadius: "4px", cursor: loading ? "not-allowed" : "pointer", fontSize: "14px", fontWeight: "500" }}
                 >
                   Annuler
                 </button>
                 <button
                   onClick={() => assignModalTicketId && handleAssign(assignModalTicketId)}
                   disabled={loading || !selectedTechnician}
-                  style={{ padding: "10px 20px", background: "#0ea5e9", color: "white", border: "none", borderRadius: "4px", cursor: loading || !selectedTechnician ? "not-allowed" : "pointer", fontSize: "14px", fontWeight: "500", opacity: loading || !selectedTechnician ? 0.6 : 1 }}
+                  style={{ padding: "10px 20px", background: "#f97316", color: "white", border: "none", borderRadius: "4px", cursor: loading || !selectedTechnician ? "not-allowed" : "pointer", fontSize: "14px", fontWeight: "500", opacity: loading || !selectedTechnician ? 0.6 : 1 }}
                 >
                   {loading ? "Assignation..." : "Confirmer l'assignation"}
                 </button>
