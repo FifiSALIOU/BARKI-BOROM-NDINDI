@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useSearchParams, useLocation, useNavigate } from "react-router-dom";
-import { Users, Clock3, TrendingUp, Award, UserCheck, Star, LayoutDashboard, ChevronLeft, ChevronRight, Bell, BarChart3, Search, Ticket, Wrench, CheckCircle2, AlertTriangle, Clock, Briefcase, UserPlus, CornerUpRight, Box, FileText, RefreshCcw } from "lucide-react";
+import { Users, Clock3, TrendingUp, Award, UserCheck, Star, LayoutDashboard, ChevronLeft, ChevronRight, Bell, BarChart3, Search, Ticket, Wrench, CheckCircle2, AlertTriangle, Clock, Briefcase, UserPlus, CornerUpRight, Box, FileText, RefreshCcw, Plus, Pencil, Trash2, ChevronDown } from "lucide-react";
 import React from "react";
 import helpdeskLogo from "../assets/helpdesk-logo.png";
 import jsPDF from "jspdf";
@@ -10444,32 +10444,105 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
              const uniqueRoles = Array.from(new Set(allUsers.map((u: any) => u.role?.name).filter(Boolean)));
              const uniqueAgencies = Array.from(new Set(allUsers.map((u: any) => u.agency).filter(Boolean)));
              
+             const borderColor = "hsl(var(--border))";
+             const mutedFg = "hsl(var(--muted-foreground))";
+             const fg = "hsl(var(--foreground))";
+             const cardBg = "hsl(var(--card))";
+             const orange = "hsl(var(--brand-orange))";
+             const orangeLight = "hsl(var(--brand-orange-light))";
+             const orangeDark = "hsl(var(--brand-orange-dark))";
+             const greenActive = "hsl(var(--green-active))";
+
              return (
-               <>
-                 <h2 style={{ marginBottom: "24px", fontSize: "28px", fontWeight: "600", color: "#333" }}>Gestion des utilisateurs</h2>
-                 
-                 {/* Barre d'actions */}
-                 <div style={{ display: "flex", gap: "12px", marginBottom: "20px" }}>
-                   <button 
-                     onClick={() => setShowAddUserModal(true)}
-                     style={{ padding: "8px 16px", backgroundColor: "#007bff", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontSize: "14px" }}
-                   >
-                     [+ Ajouter un utilisateur]
-                   </button>
-                   <button style={{ padding: "8px 16px", backgroundColor: "#6c757d", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontSize: "14px" }}>
-                     [Importer CSV]
-                   </button>
-                   <button style={{ padding: "8px 16px", backgroundColor: "#28a745", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontSize: "14px" }}>
-                     [Exporter]
-                   </button>
-                 </div>
-                 
-                 {/* Filtres */}
-                 <div style={{ marginBottom: "16px" }}>
-                   <div style={{ display: "flex", gap: "16px", marginBottom: "12px", alignItems: "center", flexWrap: "wrap" }}>
-                     <span style={{ color: "#28a745", fontWeight: "500" }}>Filtrer :</span>
-                     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                       <span style={{ color: "#28a745", fontWeight: "500" }}>Rôle :</span>
+               <div
+                 style={{
+                   background: cardBg,
+                   borderRadius: "8px",
+                   boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                   border: `1px solid ${borderColor}`,
+                   overflow: "hidden"
+                 }}
+               >
+                 <div style={{ padding: "24px" }}>
+                   {/* Header */}
+                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "16px", marginBottom: "24px" }}>
+                     <h2 style={{ margin: 0, fontSize: "24px", fontWeight: 600, color: fg, fontFamily: "system-ui, sans-serif" }}>
+                       Gestion des utilisateurs
+                     </h2>
+                     <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+                       <button
+                         onClick={() => setShowAddUserModal(true)}
+                         style={{
+                           display: "inline-flex",
+                           alignItems: "center",
+                           gap: "8px",
+                           padding: "10px 20px",
+                           backgroundColor: orange,
+                           color: "white",
+                           border: "none",
+                           borderRadius: "8px",
+                           cursor: "pointer",
+                           fontSize: "14px",
+                           fontWeight: 500,
+                           boxShadow: "0 1px 2px rgba(0,0,0,0.05)"
+                         }}
+                       >
+                         <Plus size={18} />
+                         Ajouter
+                       </button>
+                       <button
+                         style={{
+                           padding: "10px 20px",
+                           backgroundColor: "#f1f5f9",
+                           color: fg,
+                           border: `1px solid ${borderColor}`,
+                           borderRadius: "8px",
+                           cursor: "pointer",
+                           fontSize: "14px"
+                         }}
+                       >
+                         Importer CSV
+                       </button>
+                       <button
+                         style={{
+                           padding: "10px 20px",
+                           backgroundColor: "#f1f5f9",
+                           color: fg,
+                           border: `1px solid ${borderColor}`,
+                           borderRadius: "8px",
+                           cursor: "pointer",
+                           fontSize: "14px"
+                         }}
+                       >
+                         Exporter
+                       </button>
+                     </div>
+                   </div>
+
+                   {/* Search + filters */}
+                   <div style={{ display: "flex", gap: "16px", alignItems: "center", flexWrap: "wrap", marginBottom: "20px" }}>
+                     <div style={{ position: "relative", flex: "1", minWidth: "200px", maxWidth: "360px" }}>
+                       <Search size={18} style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: mutedFg, pointerEvents: "none" }} />
+                       <input
+                         type="text"
+                         value={searchQuery}
+                         onChange={(e) => {
+                           setSearchQuery(e.target.value);
+                           setCurrentPage(1);
+                         }}
+                         placeholder="Rechercher..."
+                         style={{
+                           width: "100%",
+                           padding: "10px 12px 10px 40px",
+                           borderRadius: "8px",
+                           border: `1px solid ${borderColor}`,
+                           backgroundColor: cardBg,
+                           color: fg,
+                           fontSize: "14px"
+                         }}
+                       />
+                     </div>
+                     <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", alignItems: "center" }}>
                        <div style={{ position: "relative", display: "inline-block" }}>
                          <select
                            value={userRoleFilter}
@@ -10477,29 +10550,27 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                              setUserRoleFilter(e.target.value);
                              setCurrentPage(1);
                            }}
-                           style={{ 
-                             padding: "6px 24px 6px 12px", 
-                             borderRadius: "4px", 
-                             border: "1px solid #ddd", 
-                             backgroundColor: "white", 
-                             color: "#333", 
-                             fontSize: "14px", 
+                           style={{
+                             padding: "10px 36px 10px 14px",
+                             borderRadius: "8px",
+                             border: `1px solid ${borderColor}`,
+                             backgroundColor: cardBg,
+                             color: fg,
+                             fontSize: "14px",
                              cursor: "pointer",
                              appearance: "none",
                              WebkitAppearance: "none",
-                             MozAppearance: "none"
+                             MozAppearance: "none",
+                             minWidth: "160px"
                            }}
                          >
-                           <option value="all">Tous</option>
+                           <option value="all">Tous les rôles</option>
                            {uniqueRoles.map((role) => (
                              <option key={role} value={role}>{role}</option>
                            ))}
                          </select>
-                         <span style={{ position: "absolute", right: "8px", top: "50%", transform: "translateY(-50%)", color: "#666", pointerEvents: "none" }}>▼</span>
+                         <ChevronDown size={18} style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", color: mutedFg, pointerEvents: "none" }} />
                        </div>
-                     </div>
-                     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                       <span style={{ color: "#28a745", fontWeight: "500" }}>Statut :</span>
                        <div style={{ position: "relative", display: "inline-block" }}>
                          <select
                            value={userStatusFilter}
@@ -10507,28 +10578,26 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                              setUserStatusFilter(e.target.value);
                              setCurrentPage(1);
                            }}
-                           style={{ 
-                             padding: "6px 24px 6px 12px", 
-                             borderRadius: "4px", 
-                             border: "1px solid #ddd", 
-                             backgroundColor: "white", 
-                             color: "#333", 
-                             fontSize: "14px", 
+                           style={{
+                             padding: "10px 36px 10px 14px",
+                             borderRadius: "8px",
+                             border: `1px solid ${borderColor}`,
+                             backgroundColor: cardBg,
+                             color: fg,
+                             fontSize: "14px",
                              cursor: "pointer",
                              appearance: "none",
                              WebkitAppearance: "none",
-                             MozAppearance: "none"
+                             MozAppearance: "none",
+                             minWidth: "140px"
                            }}
                          >
-                           <option value="all">Tous</option>
+                           <option value="all">Tous les statuts</option>
                            <option value="actif">Actif</option>
                            <option value="inactif">Inactif</option>
                          </select>
-                         <span style={{ position: "absolute", right: "8px", top: "50%", transform: "translateY(-50%)", color: "#666", pointerEvents: "none" }}>▼</span>
+                         <ChevronDown size={18} style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", color: mutedFg, pointerEvents: "none" }} />
                        </div>
-                     </div>
-                     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                       <span style={{ color: "#28a745", fontWeight: "500" }}>Département :</span>
                        <div style={{ position: "relative", display: "inline-block" }}>
                          <select
                            value={userAgencyFilter}
@@ -10536,165 +10605,219 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                              setUserAgencyFilter(e.target.value);
                              setCurrentPage(1);
                            }}
-                           style={{ 
-                             padding: "6px 24px 6px 12px", 
-                             borderRadius: "4px", 
-                             border: "1px solid #ddd", 
-                             backgroundColor: "white", 
-                             color: "#333", 
-                             fontSize: "14px", 
+                           style={{
+                             padding: "10px 36px 10px 14px",
+                             borderRadius: "8px",
+                             border: `1px solid ${borderColor}`,
+                             backgroundColor: cardBg,
+                             color: fg,
+                             fontSize: "14px",
                              cursor: "pointer",
                              appearance: "none",
                              WebkitAppearance: "none",
-                             MozAppearance: "none"
+                             MozAppearance: "none",
+                             minWidth: "160px"
                            }}
                          >
-                           <option value="all">Tous</option>
+                           <option value="all">Tous les départements</option>
                            {uniqueAgencies.map((agency) => (
                              <option key={agency} value={agency}>{agency}</option>
                            ))}
                          </select>
-                         <span style={{ position: "absolute", right: "8px", top: "50%", transform: "translateY(-50%)", color: "#666", pointerEvents: "none" }}>▼</span>
+                         <ChevronDown size={18} style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", color: mutedFg, pointerEvents: "none" }} />
                        </div>
                      </div>
                    </div>
-                 </div>
-                 
-                 {/* Recherche */}
-                 <div style={{ marginBottom: "20px", display: "flex", alignItems: "center", gap: "8px" }}>
-                   <span style={{ color: "#333", fontWeight: "500" }}>Rechercher :</span>
-                   <input
-                     type="text"
-                     value={searchQuery}
-                     onChange={(e) => {
-                       setSearchQuery(e.target.value);
-                       setCurrentPage(1);
-                     }}
-                     placeholder="🔍 Rechercher un utilisateur..."
-                     style={{ flex: 1, maxWidth: "400px", padding: "8px 12px", borderRadius: "4px", border: "1px solid #ddd", fontSize: "14px" }}
-                   />
-                 </div>
-                 
-                 {/* Tableau des utilisateurs */}
-                 <table style={{ width: "100%", borderCollapse: "collapse", background: "white", borderRadius: "8px", boxShadow: "0 2px 4px rgba(0,0,0,0.1)", border: "1px solid #e0e0e0" }}>
-                   <thead>
-                     <tr style={{ background: "#f8f9fa" }}>
-                       <th style={{ padding: "12px 16px", textAlign: "left", borderBottom: "1px solid #dee2e6", fontWeight: "600" }}>ID</th>
-                       <th style={{ padding: "12px 16px", textAlign: "left", borderBottom: "1px solid #dee2e6", fontWeight: "600" }}>Nom</th>
-                       <th style={{ padding: "12px 16px", textAlign: "left", borderBottom: "1px solid #dee2e6", fontWeight: "600" }}>Email</th>
-                       <th style={{ padding: "12px 16px", textAlign: "left", borderBottom: "1px solid #dee2e6", fontWeight: "600" }}>Rôle</th>
-                       <th style={{ padding: "12px 16px", textAlign: "left", borderBottom: "1px solid #dee2e6", fontWeight: "600" }}>Statut</th>
-                       <th style={{ padding: "12px 16px", textAlign: "left", borderBottom: "1px solid #dee2e6", fontWeight: "600" }}>Actions</th>
-                     </tr>
-                   </thead>
-                   <tbody>
-                     {paginatedUsers.length === 0 ? (
-                       <tr>
-                         <td colSpan={6} style={{ textAlign: "center", padding: "40px", color: "#999" }}>
-                           Aucun utilisateur trouvé
-                         </td>
-                       </tr>
-                     ) : (
-                       paginatedUsers.map((user: any, index: number) => {
-                         const isActive = user.actif === true;
-                         const displayId = startIndex + index + 1;
-                         return (
-                           <tr key={user.id} style={{ borderBottom: "1px solid #eee" }}>
-                             <td style={{ padding: "12px 16px" }}>{displayId}</td>
-                             <td style={{ padding: "12px 16px" }}>{user.full_name || "N/A"}</td>
-                             <td style={{ padding: "12px 16px" }}>{user.email || "N/A"}</td>
-                             <td style={{ padding: "12px 16px" }}>{user.role?.name || "N/A"}</td>
-                             <td style={{ padding: "12px 16px" }}>
-                               {isActive ? (
-                                 <span style={{ color: "#28a745", fontWeight: "500" }}>Actif ✓</span>
-                               ) : (
-                                 <span style={{ color: "#dc3545", fontWeight: "500" }}>Inactif ❌</span>
-                               )}
-                             </td>
-                             <td style={{ padding: "12px 16px" }}>
-                               <div style={{ display: "flex", gap: "8px" }}>
-                                 <button
-                                   onClick={() => handleEditUser(user)}
-                                   style={{ 
-                                     padding: "8px 16px", 
-                                     backgroundColor: "#17a2b8", 
-                                     border: "none", 
-                                     borderRadius: "4px", 
-                                     cursor: "pointer", 
-                                     fontSize: "14px",
-                                     color: "white",
-                                     fontWeight: "500"
-                                   }}
-                                 >
-                                   Modifier
-                                 </button>
-                                 <button
-                                   onClick={() => {
-                                     if (confirm(`Êtes-vous sûr de vouloir réinitialiser le mot de passe de ${user.full_name} ?`)) {
-                                       handleResetPassword(user);
-                                     }
-                                   }}
-                                   style={{ 
-                                     padding: "8px 16px", 
-                                     backgroundColor: "#ff9800", 
-                                     border: "none", 
-                                     borderRadius: "4px", 
-                                     cursor: "pointer", 
-                                     fontSize: "14px",
-                                     color: "white",
-                                     fontWeight: "500"
-                                   }}
-                                 >
-                                   Réinitialiser
-                                 </button>
-                                 <button
-                                   onClick={() => {
-                                     if (confirm(`Êtes-vous sûr de vouloir supprimer l'utilisateur ${user.full_name} ? Cette action est irréversible.`)) {
-                                       handleDeleteUser(user);
-                                     }
-                                   }}
-                                   style={{ 
-                                     padding: "8px 16px", 
-                                     backgroundColor: "#dc3545", 
-                                     border: "none", 
-                                     borderRadius: "4px", 
-                                     cursor: "pointer", 
-                                     fontSize: "14px",
-                                     color: "white",
-                                     fontWeight: "500"
-                                   }}
-                                 >
-                                   Supprimer
-                                 </button>
-                               </div>
+
+                   {/* Table */}
+                   <div style={{ overflowX: "auto" }}>
+                     <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                       <thead>
+                         <tr>
+                           <th style={{ padding: "12px 16px", textAlign: "left", borderBottom: `1px solid ${borderColor}`, fontWeight: 500, fontSize: "14px", color: mutedFg }}>Utilisateur</th>
+                           <th style={{ padding: "12px 16px", textAlign: "left", borderBottom: `1px solid ${borderColor}`, fontWeight: 500, fontSize: "14px", color: mutedFg }}>Rôle</th>
+                           <th style={{ padding: "12px 16px", textAlign: "left", borderBottom: `1px solid ${borderColor}`, fontWeight: 500, fontSize: "14px", color: mutedFg }}>Département</th>
+                           <th style={{ padding: "12px 16px", textAlign: "left", borderBottom: `1px solid ${borderColor}`, fontWeight: 500, fontSize: "14px", color: mutedFg }}>Statut</th>
+                           <th style={{ padding: "12px 16px", textAlign: "left", borderBottom: `1px solid ${borderColor}`, fontWeight: 500, fontSize: "14px", color: mutedFg }}>Actions</th>
+                         </tr>
+                       </thead>
+                       <tbody>
+                         {paginatedUsers.length === 0 ? (
+                           <tr>
+                             <td colSpan={5} style={{ textAlign: "center", padding: "48px 16px", color: mutedFg, fontSize: "14px" }}>
+                               Aucun utilisateur trouvé
                              </td>
                            </tr>
-                         );
-                       })
-                     )}
-                   </tbody>
-                 </table>
-                 
-                 {/* Pagination */}
-                 <div style={{ marginTop: "20px", display: "flex", alignItems: "center", gap: "12px", justifyContent: "center" }}>
-                   <span style={{ color: "#333", fontWeight: "500" }}>Pagination :</span>
-                   <button
-                     onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                     disabled={currentPage === 1}
-                     style={{ padding: "6px 12px", backgroundColor: currentPage === 1 ? "#e0e0e0" : "#007bff", color: currentPage === 1 ? "#999" : "white", border: "none", borderRadius: "4px", cursor: currentPage === 1 ? "not-allowed" : "pointer", fontSize: "14px" }}
-                   >
-                     [&lt; Précédent]
-                   </button>
-                   <span style={{ color: "#333", fontSize: "14px" }}>Page {currentPage} sur {totalPages || 1}</span>
-                   <button
-                     onClick={() => setCurrentPage(prev => Math.min(totalPages || 1, prev + 1))}
-                     disabled={currentPage >= (totalPages || 1)}
-                     style={{ padding: "6px 12px", backgroundColor: currentPage >= (totalPages || 1) ? "#e0e0e0" : "#007bff", color: currentPage >= (totalPages || 1) ? "#999" : "white", border: "none", borderRadius: "4px", cursor: currentPage >= (totalPages || 1) ? "not-allowed" : "pointer", fontSize: "14px" }}
-                   >
-                     [Suivant &gt;]
-                   </button>
+                         ) : (
+                           paginatedUsers.map((user: any) => {
+                             const isActive = user.actif === true;
+                             const initials = (user.full_name || "?")
+                               .split(" ")
+                               .map((n: string) => n[0])
+                               .join("")
+                               .toUpperCase()
+                               .substring(0, 2) || "??";
+                             return (
+                               <tr
+                                 key={user.id}
+                                 style={{
+                                   borderBottom: `1px solid ${borderColor}`,
+                                   transition: "background 0.15s"
+                                 }}
+                                 onMouseEnter={(e) => { e.currentTarget.style.background = "hsl(220, 20%, 97%)"; }}
+                                 onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+                               >
+                                 <td style={{ padding: "12px 16px" }}>
+                                   <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                                     <div
+                                       style={{
+                                         width: "40px",
+                                         height: "40px",
+                                         borderRadius: "50%",
+                                         background: orangeLight,
+                                         color: orangeDark,
+                                         display: "flex",
+                                         alignItems: "center",
+                                         justifyContent: "center",
+                                         fontSize: "14px",
+                                         fontWeight: 600,
+                                         flexShrink: 0
+                                       }}
+                                     >
+                                       {initials}
+                                     </div>
+                                     <div>
+                                       <div style={{ fontWeight: 500, color: fg, fontSize: "14px" }}>{user.full_name || "N/A"}</div>
+                                       <div style={{ fontSize: "13px", color: mutedFg }}>{user.email || "N/A"}</div>
+                                     </div>
+                                   </div>
+                                 </td>
+                                 <td style={{ padding: "12px 16px" }}>
+                                   <span
+                                     style={{
+                                       border: `1px solid ${borderColor}`,
+                                       borderRadius: "9999px",
+                                       padding: "4px 12px",
+                                       fontSize: "13px",
+                                       color: fg
+                                     }}
+                                   >
+                                     {user.role?.name || "N/A"}
+                                   </span>
+                                 </td>
+                                 <td style={{ padding: "12px 16px", fontSize: "14px", color: fg }}>{user.agency || "—"}</td>
+                                 <td style={{ padding: "12px 16px" }}>
+                                   {isActive ? (
+                                     <span style={{ background: greenActive, color: "white", borderRadius: "9999px", padding: "4px 12px", fontSize: "13px" }}>
+                                       Actif
+                                     </span>
+                                   ) : (
+                                     <span style={{ background: "hsl(0, 0%, 90%)", color: mutedFg, borderRadius: "9999px", padding: "4px 12px", fontSize: "13px" }}>
+                                       Inactif
+                                     </span>
+                                   )}
+                                 </td>
+                                 <td style={{ padding: "12px 16px" }}>
+                                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                     <button
+                                       type="button"
+                                       onClick={() => handleEditUser(user)}
+                                       title="Modifier"
+                                       style={{
+                                         padding: "8px",
+                                         background: "none",
+                                         border: "none",
+                                         borderRadius: "6px",
+                                         cursor: "pointer",
+                                         color: mutedFg
+                                       }}
+                                     >
+                                       <Pencil size={18} />
+                                     </button>
+                                     <button
+                                       type="button"
+                                       onClick={() => {
+                                         if (confirm(`Êtes-vous sûr de vouloir réinitialiser le mot de passe de ${user.full_name} ?`)) {
+                                           handleResetPassword(user);
+                                         }
+                                       }}
+                                       title="Réinitialiser"
+                                       style={{
+                                         padding: "8px",
+                                         background: "none",
+                                         border: "none",
+                                         borderRadius: "6px",
+                                         cursor: "pointer",
+                                         color: mutedFg
+                                       }}
+                                     >
+                                       <RefreshCcw size={18} />
+                                     </button>
+                                     <button
+                                       type="button"
+                                       onClick={() => {
+                                         if (confirm(`Êtes-vous sûr de vouloir supprimer l'utilisateur ${user.full_name} ? Cette action est irréversible.`)) {
+                                           handleDeleteUser(user);
+                                         }
+                                       }}
+                                       title="Supprimer"
+                                       style={{
+                                         padding: "8px",
+                                         background: "none",
+                                         border: "none",
+                                         borderRadius: "6px",
+                                         cursor: "pointer",
+                                         color: "#dc2626"
+                                       }}
+                                     >
+                                       <Trash2 size={18} />
+                                     </button>
+                                   </div>
+                                 </td>
+                               </tr>
+                             );
+                           })
+                         )}
+                       </tbody>
+                     </table>
+                   </div>
+
+                   {/* Pagination */}
+                   <div style={{ marginTop: "20px", display: "flex", alignItems: "center", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
+                     <button
+                       onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                       disabled={currentPage === 1}
+                       style={{
+                         padding: "8px 14px",
+                         backgroundColor: currentPage === 1 ? "hsl(220, 20%, 94%)" : orange,
+                         color: currentPage === 1 ? mutedFg : "white",
+                         border: "none",
+                         borderRadius: "8px",
+                         cursor: currentPage === 1 ? "not-allowed" : "pointer",
+                         fontSize: "14px"
+                       }}
+                     >
+                       Précédent
+                     </button>
+                     <span style={{ color: fg, fontSize: "14px" }}>Page {currentPage} sur {totalPages || 1}</span>
+                     <button
+                       onClick={() => setCurrentPage(prev => Math.min(totalPages || 1, prev + 1))}
+                       disabled={currentPage >= (totalPages || 1)}
+                       style={{
+                         padding: "8px 14px",
+                         backgroundColor: currentPage >= (totalPages || 1) ? "hsl(220, 20%, 94%)" : orange,
+                         color: currentPage >= (totalPages || 1) ? mutedFg : "white",
+                         border: "none",
+                         borderRadius: "8px",
+                         cursor: currentPage >= (totalPages || 1) ? "not-allowed" : "pointer",
+                         fontSize: "14px"
+                       }}
+                     >
+                       Suivant
+                     </button>
+                   </div>
                  </div>
-               </>
+               </div>
              );
            })()}
 

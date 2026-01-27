@@ -103,3 +103,15 @@ p[style*="color: red"] {
   font-size: 14px;
   margin-top: 8px;
 }
+
+/* Design tokens – Gestion des utilisateurs (admin) */
+:root {
+  --brand-orange: 24, 95%, 53%;
+  --brand-orange-light: 24, 100%, 95%;
+  --brand-orange-dark: 24, 95%, 45%;
+  --foreground: 220, 60%, 15%;
+  --muted-foreground: 220, 15%, 45%;
+  --card: 0, 0%, 100%;
+  --border: 220, 20%, 88%;
+  --green-active: 142, 76%, 36%;
+}
