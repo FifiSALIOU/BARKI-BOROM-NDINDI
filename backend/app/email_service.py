@@ -220,7 +220,7 @@ Cordialement,
         else:
             # Secrétaire DSI, Adjoint DSI et Admin : seulement le bouton "Assigner à un technicien"
             if recipient_role == "Admin":
-                role_path = "/dashboard/dsi"
+                role_path = "/dashboard/admin"
             elif recipient_role == "Adjoint DSI":
                 role_path = "/dashboard/adjoint"
             else:
