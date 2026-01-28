@@ -11217,9 +11217,9 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                       <div
                         key={ticketType.id}
                         style={{
-                          background: "white",
+                          background: "hsl(var(--card))",
                           borderRadius: "8px",
-                          border: "1px solid hsl(220, 20%, 92%)",
+                          border: "1px solid hsl(var(--border))",
                           padding: "20px",
                           display: "flex",
                           gap: "16px",
@@ -11233,23 +11233,24 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                           e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.08)";
                         }}
                       >
-                        {/* Icône dans cercle coloré */}
+                        {/* Icône dans cercle coloré - w-12 h-12 rounded-full flex items-center justify-center */}
                         <div
                           style={{
                             width: "48px",
                             height: "48px",
                             borderRadius: "50%",
-                            background: isMateriel ? "rgba(255, 107, 0, 0.1)" : "hsl(220, 20%, 96%)",
+                            background: isMateriel ? "rgba(255, 107, 0, 0.1)" : "hsl(210, 40%, 96%)",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
                             flexShrink: 0
                           }}
                         >
+                          {/* Icône w-6 h-6 text-primary pour Matériel, gris foncé pour Applicatif */}
                           {isMateriel ? (
                             <Wrench size={24} color="#FF6B00" />
                           ) : (
-                            <Monitor size={24} color={isApplicatif ? "#FF6B00" : "hsl(220, 15%, 45%)"} />
+                            <Monitor size={24} color="hsl(220, 15%, 45%)" />
                           )}
                         </div>
 
@@ -11257,10 +11258,11 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           {/* Titre et badge Actif */}
                           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px", flexWrap: "wrap" }}>
+                            {/* Titre: text-base font-semibold text-foreground */}
                             <h3 style={{ 
                               fontSize: "16px", 
                               fontWeight: 600, 
-                              color: "#1E3A5F", 
+                              color: "hsl(var(--foreground))", 
                               margin: 0 
                             }}>
                               {ticketType.label}
@@ -11271,25 +11273,25 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                                 borderRadius: "9999px",
                                 fontSize: "13px",
                                 fontWeight: 500,
-                                background: "rgba(47, 158, 68, 0.1)",
-                                color: "#2F9E44"
+                                background: "rgba(34, 197, 94, 0.1)",
+                                color: "rgb(34, 197, 94)"
                               }}>
                                 Actif
                               </span>
                             )}
                           </div>
 
-                          {/* Description */}
+                          {/* Description: text-sm text-muted-foreground */}
                           <p style={{ 
                             fontSize: "14px", 
-                            color: "hsl(220, 15%, 45%)", 
+                            color: "hsl(var(--muted-foreground))", 
                             margin: "0 0 8px 0",
                             lineHeight: "1.5"
                           }}>
                             {description}
                           </p>
 
-                          {/* Code */}
+                          {/* Code: text-xs text-primary */}
                           <p style={{ 
                             fontSize: "12px", 
                             color: "#FF6B00", 
@@ -11302,6 +11304,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
 
                       {/* Actions */}
                       <div style={{ display: "flex", alignItems: "flex-start", gap: "8px", flexShrink: 0 }}>
+                        {/* Modifier: Pencil - w-5 h-5 text-muted-foreground hover:text-foreground */}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -11313,24 +11316,23 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                             border: "none",
                             borderRadius: "6px",
                             cursor: "pointer",
-                            color: "hsl(220, 15%, 45%)",
+                            color: "hsl(var(--muted-foreground))",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
                             transition: "all 0.2s"
                           }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.background = "hsl(220, 20%, 96%)";
-                            e.currentTarget.style.color = "#1E3A5F";
+                            e.currentTarget.style.color = "hsl(var(--foreground))";
                           }}
                           onMouseLeave={(e) => {
-                            e.currentTarget.style.background = "transparent";
-                            e.currentTarget.style.color = "hsl(220, 15%, 45%)";
+                            e.currentTarget.style.color = "hsl(var(--muted-foreground))";
                           }}
                           title="Modifier"
                         >
                           <Pencil size={20} />
                         </button>
+                        {/* Supprimer: Trash2 - w-5 h-5 text-destructive hover:text-destructive/80 */}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -11342,19 +11344,17 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                             border: "none",
                             borderRadius: "6px",
                             cursor: "pointer",
-                            color: "#dc2626",
+                            color: "rgb(239, 68, 68)",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
                             transition: "all 0.2s"
                           }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.background = "rgba(220, 38, 38, 0.1)";
-                            e.currentTarget.style.color = "#dc2626";
+                            e.currentTarget.style.color = "rgba(239, 68, 68, 0.8)";
                           }}
                           onMouseLeave={(e) => {
-                            e.currentTarget.style.background = "transparent";
-                            e.currentTarget.style.color = "#dc2626";
+                            e.currentTarget.style.color = "rgb(239, 68, 68)";
                           }}
                           title="Supprimer"
                         >
