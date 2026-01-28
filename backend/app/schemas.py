@@ -129,6 +129,11 @@ class TicketTypeConfig(BaseModel):
         from_attributes = True
 
 
+class TicketTypeUpdate(BaseModel):
+    label: Optional[str] = None
+    is_active: Optional[bool] = None
+
+
 class TicketCategoryConfig(BaseModel):
     id: int
     name: str

@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, HTTPException, status
 from sqlalchemy.orm import Session, joinedload
 
 from .. import models, schemas
@@ -18,14 +18,19 @@ def get_ticket_types(
 ):
     """
     Récupère la liste des types de tickets configurés dans la base.
-    Seuls les types actifs sont renvoyés.
+    Pour les admins, retourne tous les types (actifs et inactifs).
+    Pour les autres utilisateurs, retourne uniquement les types actifs.
     """
-    types = (
-        db.query(models.TicketTypeModel)
-        .filter(models.TicketTypeModel.is_active.is_(True))
-        .order_by(models.TicketTypeModel.label.asc())
-        .all()
-    )
+    # Vérifier si l'utilisateur est admin
+    is_admin = current_user.role and current_user.role.name == "Admin"
+    
+    query = db.query(models.TicketTypeModel)
+    
+    # Si ce n'est pas un admin, filtrer seulement les types actifs
+    if not is_admin:
+        query = query.filter(models.TicketTypeModel.is_active.is_(True))
+    
+    types = query.order_by(models.TicketTypeModel.label.asc()).all()
     return types
 
 
@@ -64,5 +69,31 @@ def get_ticket_categories(
     return result
 
 
+@router.put("/types/{type_id}", response_model=schemas.TicketTypeConfig)
+def update_ticket_type(
+    type_id: int,
+    type_update: schemas.TicketTypeUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    """
+    Met à jour un type de ticket.
+    """
+    ticket_type = db.query(models.TicketTypeModel).filter(models.TicketTypeModel.id == type_id).first()
+    if not ticket_type:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Type de ticket non trouvé"
+        )
+    
+    if type_update.label is not None:
+        ticket_type.label = type_update.label
+    if type_update.is_active is not None:
+        ticket_type.is_active = type_update.is_active
+    
+    db.commit()
+    db.refresh(ticket_type)
+    
+    return ticket_type
 
 

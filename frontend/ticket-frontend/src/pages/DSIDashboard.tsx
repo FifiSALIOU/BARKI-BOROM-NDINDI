@@ -538,7 +538,7 @@ function DSIDashboard({ token }: DSIDashboardProps) {
   }>>([]);
   const [showAddTypeModal, setShowAddTypeModal] = useState(false);
   const [editingType, setEditingType] = useState<number | null>(null);
-  const [newType, setNewType] = useState({ type: "", description: "", color: "#007bff" });
+  const [newType, setNewType] = useState({ type: "", description: "", color: "#007bff", is_active: true });
   const [loadingTypes, setLoadingTypes] = useState(false);
   
   // États pour les priorités
@@ -1232,7 +1232,7 @@ function DSIDashboard({ token }: DSIDashboardProps) {
     }
     // Note: L'API pour créer un type n'existe pas encore, donc on garde juste le comportement actuel
     // mais on recharge les types depuis l'API après
-    setNewType({ type: "", description: "", color: "#007bff" });
+    setNewType({ type: "", description: "", color: "#007bff", is_active: true });
     setShowAddTypeModal(false);
     alert("Fonctionnalité d'ajout de type à implémenter via l'API");
   };
@@ -1240,10 +1240,14 @@ function DSIDashboard({ token }: DSIDashboardProps) {
   const handleEditType = (typeId: number) => {
     const type = ticketTypes.find(t => t.id === typeId);
     if (type) {
-      setNewType({ type: type.label, description: "", color: "#007bff" });
+      setNewType({ type: type.label, description: "", color: "#007bff", is_active: type.is_active });
       setEditingType(typeId);
       setShowAddTypeModal(true);
     }
+  };
+
+  const handleToggleActive = () => {
+    setNewType({ ...newType, is_active: !newType.is_active });
   };
 
   const handleUpdateType = async () => {
@@ -1251,12 +1255,47 @@ function DSIDashboard({ token }: DSIDashboardProps) {
       alert("Veuillez remplir le nom du type");
       return;
     }
-    // Note: L'API pour modifier un type n'existe pas encore, donc on garde juste le comportement actuel
-    // mais on recharge les types depuis l'API après
-    setNewType({ type: "", description: "", color: "#007bff" });
-    setEditingType(null);
-    setShowAddTypeModal(false);
-    alert("Fonctionnalité de modification de type à implémenter via l'API");
+    if (!editingType || !token) {
+      alert("Erreur: type non sélectionné");
+      return;
+    }
+
+    try {
+      const res = await fetch(`http://localhost:8000/ticket-config/types/${editingType}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          label: newType.type,
+          is_active: newType.is_active,
+        }),
+      });
+
+      if (res.ok) {
+        // Recharger les types depuis l'API
+        const typesRes = await fetch("http://localhost:8000/ticket-config/types", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (typesRes.ok) {
+          const data = await typesRes.json();
+          setTicketTypes(data);
+        }
+        setNewType({ type: "", description: "", color: "#007bff", is_active: true });
+        setEditingType(null);
+        setShowAddTypeModal(false);
+        alert("Type de ticket modifié avec succès !");
+      } else {
+        const error = await res.json().catch(() => ({ detail: "Erreur lors de la modification" }));
+        alert(error.detail || "Erreur lors de la modification du type");
+      }
+    } catch (err) {
+      console.error("Erreur lors de la modification du type:", err);
+      alert("Erreur lors de la modification du type");
+    }
   };
 
   const handleDeleteType = async (typeId: number) => {
@@ -11159,7 +11198,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", marginBottom: "24px" }}>
                 <button
                   onClick={() => {
-                    setNewType({ type: "", description: "", color: "#007bff" });
+                    setNewType({ type: "", description: "", color: "#007bff", is_active: true });
                     setEditingType(null);
                     setShowAddTypeModal(true);
                   }}
@@ -11367,7 +11406,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                   onClick={() => {
                     setShowAddTypeModal(false);
                     setEditingType(null);
-                    setNewType({ type: "", description: "", color: "#007bff" });
+                    setNewType({ type: "", description: "", color: "#007bff", is_active: true });
                   }}
                   style={{
                     position: "fixed",
@@ -11402,7 +11441,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                       onClick={() => {
                         setShowAddTypeModal(false);
                         setEditingType(null);
-                        setNewType({ type: "", description: "", color: "#007bff" });
+                        setNewType({ type: "", description: "", color: "#007bff", is_active: true });
                       }}
                       style={{
                         position: "absolute",
@@ -11523,13 +11562,14 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                           Actif
                         </label>
                         <div
+                          onClick={handleToggleActive}
                           style={{
                             width: "44px",
                             height: "24px",
                             borderRadius: "12px",
-                            background: editingType ? (ticketTypes.find(t => t.id === editingType)?.is_active ? "#22c55e" : "#1E3A5F") : "#22c55e",
+                            background: newType.is_active ? "#22c55e" : "#1E3A5F",
                             position: "relative",
-                            cursor: "not-allowed",
+                            cursor: "pointer",
                             transition: "all 0.2s",
                             flexShrink: 0
                           }}
@@ -11542,7 +11582,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                               background: "white",
                               position: "absolute",
                               top: "2px",
-                              right: editingType ? (ticketTypes.find(t => t.id === editingType)?.is_active ? "2px" : "22px") : "2px",
+                              right: newType.is_active ? "2px" : "22px",
                               transition: "all 0.2s",
                               boxShadow: "0 1px 3px rgba(0,0,0,0.2)"
                             }}
@@ -11558,7 +11598,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                           onClick={() => {
                             setShowAddTypeModal(false);
                             setEditingType(null);
-                            setNewType({ type: "", description: "", color: "#007bff" });
+                            setNewType({ type: "", description: "", color: "#007bff", is_active: true });
                           }}
                           style={{
                             padding: "10px 20px",
@@ -13302,7 +13342,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                <div style={{ marginBottom: "24px" }}>
                  <button
                    onClick={() => {
-                     setNewType({ type: "", description: "", color: "#007bff" });
+                     setNewType({ type: "", description: "", color: "#007bff", is_active: true });
                      setEditingType(null);
                      setShowAddTypeModal(true);
                    }}
@@ -13438,7 +13478,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                    onClick={() => {
                      setShowAddTypeModal(false);
                      setEditingType(null);
-                     setNewType({ type: "", description: "", color: "#007bff" });
+                     setNewType({ type: "", description: "", color: "#007bff", is_active: true });
                    }}
                    style={{
                      position: "fixed",
@@ -13557,7 +13597,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                          onClick={() => {
                            setShowAddTypeModal(false);
                            setEditingType(null);
-                           setNewType({ type: "", description: "", color: "#007bff" });
+                           setNewType({ type: "", description: "", color: "#007bff", is_active: true });
                          }}
                          style={{
                            padding: "10px 20px",
