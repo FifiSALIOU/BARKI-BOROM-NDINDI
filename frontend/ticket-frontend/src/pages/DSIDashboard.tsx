@@ -11387,12 +11387,14 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     onClick={(e) => e.stopPropagation()}
                     style={{
                       background: "white",
-                      borderRadius: "12px",
+                      borderRadius: "8px",
                       width: "100%",
-                      maxWidth: "448px",
+                      maxWidth: "500px",
                       boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
                       padding: "24px",
-                      position: "relative"
+                      position: "relative",
+                      maxHeight: "90vh",
+                      overflowY: "auto"
                     }}
                   >
                     {/* Bouton fermer */}
@@ -11448,11 +11450,13 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                           style={{
                             width: "100%",
                             padding: "12px 16px",
-                            border: "1px solid hsl(220, 20%, 88%)",
+                            border: "1px solid #e5e7eb",
                             borderRadius: "8px",
                             fontSize: "16px",
                             backgroundColor: "white",
-                            color: "#1E3A5F"
+                            color: "#1E3A5F",
+                            height: "40px",
+                            boxSizing: "border-box"
                           }}
                         />
                       </div>
@@ -11472,13 +11476,15 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                           style={{
                             width: "100%",
                             padding: "12px 16px",
-                            border: "1px solid hsl(220, 20%, 88%)",
+                            border: "1px solid #e5e7eb",
                             borderRadius: "8px",
                             fontSize: "16px",
                             fontFamily: "monospace",
-                            backgroundColor: "hsl(220, 13%, 91%)",
-                            color: "hsl(220, 15%, 45%)",
-                            cursor: "not-allowed"
+                            backgroundColor: "#f3f4f6",
+                            color: "#6b7280",
+                            cursor: "not-allowed",
+                            height: "40px",
+                            boxSizing: "border-box"
                           }}
                         />
                       </div>
@@ -11497,13 +11503,15 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                           style={{
                             width: "100%",
                             padding: "12px 16px",
-                            border: "1px solid hsl(220, 20%, 88%)",
+                            border: "1px solid #e5e7eb",
                             borderRadius: "8px",
                             fontSize: "14px",
-                            minHeight: "100px",
+                            minHeight: "80px",
+                            height: "100px",
                             backgroundColor: "white",
                             color: "#1E3A5F",
-                            resize: "vertical"
+                            resize: "vertical",
+                            boxSizing: "border-box"
                           }}
                         />
                       </div>
@@ -11553,12 +11561,17 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                           style={{
                             padding: "10px 20px",
                             background: "white",
-                            color: "#1E3A5F",
-                            border: "1px solid hsl(220, 20%, 88%)",
+                            color: "#374151",
+                            border: "1px solid #e5e7eb",
                             borderRadius: "8px",
                             cursor: "pointer",
                             fontSize: "14px",
-                            fontWeight: "500"
+                            fontWeight: "500",
+                            height: "40px",
+                            boxSizing: "border-box",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center"
                           }}
                         >
                           Annuler
@@ -11574,7 +11587,12 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                             borderRadius: "8px",
                             cursor: "pointer",
                             fontSize: "14px",
-                            fontWeight: "500"
+                            fontWeight: "600",
+                            height: "40px",
+                            boxSizing: "border-box",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center"
                           }}
                         >
                           {editingType ? "Modifier" : "Ajouter"}
