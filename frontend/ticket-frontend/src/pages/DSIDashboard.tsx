@@ -386,6 +386,7 @@ function DSIDashboard({ token }: DSIDashboardProps) {
   const [selectedTechnician, setSelectedTechnician] = useState<string>("");
   const [assignmentNotes, setAssignmentNotes] = useState<string>("");
   const [assignmentPriority, setAssignmentPriority] = useState<string>("moyenne");
+  const [activePrioritiesForAssign, setActivePrioritiesForAssign] = useState<Array<{ id: number; code: string; label: string; color_hex?: string | null; display_order: number }>>([]);
   const [reopenTicketId, setReopenTicketId] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState<string>("");
   const [loadingRejectionReason, setLoadingRejectionReason] = useState<boolean>(false);
@@ -2009,6 +2010,19 @@ function DSIDashboard({ token }: DSIDashboardProps) {
         // Charger tous les tickets
         const ticketsData = await loadTickets();
 
+        // Charger les priorités actives (table priorities, is_active = true) pour le formulaire d'assignation
+        try {
+          const prioritiesRes = await fetch("http://localhost:8000/ticket-config/priorities", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (prioritiesRes.ok) {
+            const prioritiesData = await prioritiesRes.json();
+            setActivePrioritiesForAssign(prioritiesData);
+          }
+        } catch (err) {
+          console.error("Erreur chargement priorités:", err);
+        }
+
         // Charger la liste des techniciens avec leurs stats
         const techRes = await fetch("http://localhost:8000/users/technicians", {
           headers: {
@@ -2773,7 +2787,7 @@ function DSIDashboard({ token }: DSIDashboardProps) {
         }
         setSelectedTechnician("");
         setAssignmentNotes("");
-        setAssignmentPriority("moyenne");
+        setAssignmentPriority(activePrioritiesForAssign.length > 0 ? activePrioritiesForAssign[0].code : "moyenne");
         setShowAssignModal(false);
         setAssignTicketId(null);
         alert("Ticket assigné avec succès");
@@ -2897,7 +2911,9 @@ function DSIDashboard({ token }: DSIDashboardProps) {
     setAssignTicketId(ticketId);
     setSelectedTechnician("");
     setAssignmentNotes("");
-    setAssignmentPriority(ticket?.priority && ["faible", "moyenne", "haute", "critique"].includes(ticket.priority) ? ticket.priority : "moyenne");
+    const activeCodes = activePrioritiesForAssign.map((p) => p.code);
+    const defaultPriority = activePrioritiesForAssign.length > 0 ? activePrioritiesForAssign[0].code : "moyenne";
+    setAssignmentPriority(ticket?.priority && activeCodes.includes(ticket.priority) ? ticket.priority : defaultPriority);
     setShowAssignModal(true);
   }
   function handleDelegateClick(ticketId: string) {
@@ -17520,7 +17536,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               </select>
             </div>
 
-            {/* Définir la priorité */}
+            {/* Définir la priorité (uniquement les priorités actives de la table priorities) */}
             <div style={{ marginBottom: "16px" }}>
               <label style={{ display: "block", marginBottom: "8px", fontWeight: "500", color: "#333" }}>
                 Définir la priorité
@@ -17533,10 +17549,10 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     borderRadius: "50%",
                     flexShrink: 0,
                     background:
-                      assignmentPriority === "critique" ? "#E53E3E" :
-                      assignmentPriority === "haute" ? "#F59E0B" :
-                      assignmentPriority === "moyenne" ? "#0DADDB" :
-                      "#6B7280"
+                      activePrioritiesForAssign.find((p) => p.code === assignmentPriority)?.color_hex ??
+                      (assignmentPriority === "critique" ? "#E53E3E" :
+                       assignmentPriority === "haute" ? "#F59E0B" :
+                       assignmentPriority === "moyenne" ? "#0DADDB" : "#6B7280")
                   }}
                 />
                 <select
@@ -17550,10 +17566,20 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     fontSize: "14px"
                   }}
                 >
-                  <option value="faible">Faible</option>
-                  <option value="moyenne">Moyenne</option>
-                  <option value="haute">Haute</option>
-                  <option value="critique">Critique</option>
+                  {activePrioritiesForAssign.length > 0 ? (
+                    activePrioritiesForAssign
+                      .sort((a, b) => a.display_order - b.display_order)
+                      .map((p) => (
+                        <option key={p.id} value={p.code}>{p.label}</option>
+                      ))
+                  ) : (
+                    <>
+                      <option value="faible">Faible</option>
+                      <option value="moyenne">Moyenne</option>
+                      <option value="haute">Haute</option>
+                      <option value="critique">Critique</option>
+                    </>
+                  )}
                 </select>
               </div>
             </div>
@@ -17587,7 +17613,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                   setAssignTicketId(null);
                   setSelectedTechnician("");
                   setAssignmentNotes("");
-                  setAssignmentPriority("moyenne");
+                  setAssignmentPriority(activePrioritiesForAssign.length > 0 ? activePrioritiesForAssign[0].code : "moyenne");
                 }}
                 disabled={loading}
                 style={{
