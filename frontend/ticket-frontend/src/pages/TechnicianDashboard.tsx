@@ -1457,7 +1457,7 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
         }}>
           <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             {/* Partie gauche - Titre */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "2px", paddingLeft: 0 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
               <div style={{ 
                 fontSize: "20px", 
                 fontWeight: "700",
@@ -1472,7 +1472,8 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                 color: "#6b7280",
                 fontFamily: "system-ui, -apple-system, sans-serif",
                 paddingLeft: 0,
-                marginLeft: 0
+                marginLeft: 0,
+                textAlign: "left"
               }}>
                 Vue d'ensemble de votre activité
               </div>
@@ -4822,7 +4823,7 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
               flexShrink: 0
             }}>
               <div style={{
-                padding: "28px 20px 10px 20px",
+                padding: "28px 20px 10px 30px",
                 borderBottom: "1px solid #e0e0e0",
                 display: "flex",
                 justifyContent: "space-between",
