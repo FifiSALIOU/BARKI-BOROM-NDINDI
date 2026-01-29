@@ -11598,21 +11598,33 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                         <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: 500, color: "#111827", fontFamily: "system-ui, -apple-system, sans-serif" }}>
                           Type de ticket
                         </label>
-                        <div
+                        <select
+                          value={editCategoryTypeCode}
+                          onChange={(e) => setEditCategoryTypeCode(e.target.value)}
                           style={{
                             width: "100%",
                             padding: "12px 16px",
-                            border: "1px solid hsl(25, 95%, 53%)",
+                            border: "1px solid #e5e7eb",
                             borderRadius: "8px",
                             fontSize: "14px",
                             backgroundColor: "white",
                             color: "#111827",
                             fontFamily: "system-ui, -apple-system, sans-serif",
-                            boxSizing: "border-box"
+                            boxSizing: "border-box",
+                            cursor: "pointer",
+                            appearance: "none",
+                            backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23374151' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E\")",
+                            backgroundRepeat: "no-repeat",
+                            backgroundPosition: "right 12px center",
+                            paddingRight: "40px"
                           }}
                         >
-                          {categoriesTypes.find((t) => t.code === editCategoryTypeCode)?.label ?? editCategoryTypeCode}
-                        </div>
+                          {categoriesTypes.map((t) => (
+                            <option key={t.id} value={t.code}>
+                              {t.label}
+                            </option>
+                          ))}
+                        </select>
                       </div>
                       <div>
                         <div style={{ marginBottom: "8px", fontSize: "14px", fontWeight: 500, color: "#111827", fontFamily: "system-ui, -apple-system, sans-serif" }}>
