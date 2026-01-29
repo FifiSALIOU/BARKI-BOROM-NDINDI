@@ -105,6 +105,52 @@ def get_ticket_categories(
     return result
 
 
+@router.post("/categories", response_model=schemas.TicketCategoryConfig)
+def create_ticket_category(
+    category_create: schemas.TicketCategoryCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    """
+    Crée une nouvelle catégorie de ticket.
+    """
+    type_exists = db.query(models.TicketTypeModel).filter(models.TicketTypeModel.id == category_create.ticket_type_id).first()
+    if not type_exists:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Type de ticket invalide"
+        )
+    name = category_create.name.strip()
+    existing = db.query(models.TicketCategory).filter(models.TicketCategory.name == name).first()
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Une catégorie nommée '{name}' existe déjà"
+        )
+    category = models.TicketCategory(
+        name=name,
+        ticket_type_id=category_create.ticket_type_id,
+        description=category_create.description,
+        is_active=category_create.is_active,
+    )
+    db.add(category)
+    db.commit()
+    db.refresh(category)
+    category = (
+        db.query(models.TicketCategory)
+        .options(joinedload(models.TicketCategory.ticket_type))
+        .filter(models.TicketCategory.id == category.id)
+        .first()
+    )
+    return schemas.TicketCategoryConfig(
+        id=category.id,
+        name=category.name,
+        description=category.description,
+        type_code=category.ticket_type.code if category.ticket_type else "",
+        is_active=category.is_active
+    )
+
+
 @router.put("/categories/{category_id}", response_model=schemas.TicketCategoryConfig)
 def update_ticket_category(
     category_id: int,

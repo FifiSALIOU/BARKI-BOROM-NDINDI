@@ -156,6 +156,13 @@ class TicketCategoryUpdate(BaseModel):
     is_active: Optional[bool] = None
 
 
+class TicketCategoryCreate(BaseModel):
+    name: str
+    ticket_type_id: int
+    description: Optional[str] = None
+    is_active: bool = True
+
+
 class CommentCreate(BaseModel):
     content: str
     type: CommentType = CommentType.TECHNIQUE

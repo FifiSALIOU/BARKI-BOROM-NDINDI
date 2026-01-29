@@ -567,6 +567,9 @@ function DSIDashboard({ token }: DSIDashboardProps) {
   } | null>(null);
   const [editCategoryName, setEditCategoryName] = useState("");
   const [editCategoryTypeCode, setEditCategoryTypeCode] = useState("");
+  const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [newCategoryTypeCode, setNewCategoryTypeCode] = useState("");
   
   // États pour les priorités
   const [priorities, setPriorities] = useState<Array<{
@@ -1392,6 +1395,54 @@ function DSIDashboard({ token }: DSIDashboardProps) {
       alert("Erreur lors de la suppression du type");
     }
   };
+
+  async function handleAddCategory() {
+    if (!token?.trim()) {
+      alert("Session expirée. Veuillez vous reconnecter.");
+      return;
+    }
+    const name = newCategoryName?.trim();
+    if (!name) {
+      alert("Le nom de la catégorie est obligatoire.");
+      return;
+    }
+    const selectedType = categoriesTypes.find((t) => t.code === newCategoryTypeCode);
+    if (!selectedType) {
+      alert("Veuillez sélectionner un type de ticket.");
+      return;
+    }
+    try {
+      const res = await fetch("http://localhost:8000/ticket-config/categories", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name,
+          ticket_type_id: selectedType.id,
+          is_active: true,
+        }),
+      });
+      if (res.ok) {
+        const [typesRes, categoriesRes] = await Promise.all([
+          fetch("http://localhost:8000/ticket-config/types", { headers: { Authorization: `Bearer ${token}` } }),
+          fetch("http://localhost:8000/ticket-config/categories", { headers: { Authorization: `Bearer ${token}` } }),
+        ]);
+        if (typesRes.ok) setCategoriesTypes(await typesRes.json());
+        if (categoriesRes.ok) setCategoriesList(await categoriesRes.json());
+        setShowAddCategoryModal(false);
+        setNewCategoryName("");
+        setNewCategoryTypeCode(categoriesTypes[0]?.code ?? "");
+      } else {
+        const err = await res.json().catch(() => ({ detail: "Erreur lors de l'ajout" }));
+        alert(err.detail || "Erreur lors de l'ajout de la catégorie");
+      }
+    } catch (err) {
+      console.error("Erreur lors de l'ajout de la catégorie:", err);
+      alert("Erreur lors de l'ajout de la catégorie");
+    }
+  }
 
   async function handleUpdateCategory() {
     if (!editingCategory || !token?.trim()) {
@@ -11401,6 +11452,11 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     fontFamily: "system-ui, -apple-system, sans-serif",
                     boxShadow: "0 1px 3px rgba(0,0,0,0.1)"
                   }}
+                  onClick={() => {
+                    setNewCategoryName("");
+                    setNewCategoryTypeCode(categoriesTypes[0]?.code ?? "");
+                    setShowAddCategoryModal(true);
+                  }}
                 >
                   <Plus size={18} />
                   Nouvelle catégorie
@@ -11557,6 +11613,199 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                   {categoriesTypes.length === 0 && !loadingCategories && (
                     <div style={{ textAlign: "center", padding: "40px", color: "hsl(220, 15%, 45%)", fontSize: "14px" }}>Aucun type de ticket. Ajoutez des types dans la section Types.</div>
                   )}
+                </div>
+              )}
+
+              {/* Modal Nouvelle catégorie */}
+              {showAddCategoryModal && (
+                <div
+                  onClick={() => {
+                    setShowAddCategoryModal(false);
+                  }}
+                  style={{
+                    position: "fixed",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: "rgba(0,0,0,0.6)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    zIndex: 1000,
+                    padding: "20px"
+                  }}
+                >
+                  <div
+                    onClick={(e) => e.stopPropagation()}
+                    style={{
+                      background: "white",
+                      borderRadius: "12px",
+                      width: "100%",
+                      maxWidth: "480px",
+                      boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
+                      padding: "24px",
+                      position: "relative",
+                      maxHeight: "90vh",
+                      overflowY: "auto"
+                    }}
+                  >
+                    <button
+                      onClick={() => setShowAddCategoryModal(false)}
+                      style={{
+                        position: "absolute",
+                        top: "16px",
+                        right: "16px",
+                        background: "transparent",
+                        border: "none",
+                        cursor: "pointer",
+                        padding: "4px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "#111827"
+                      }}
+                    >
+                      <X size={20} />
+                    </button>
+                    <h2 style={{ marginBottom: "24px", fontSize: "18px", fontWeight: 600, color: "#111827", fontFamily: "system-ui, -apple-system, sans-serif" }}>
+                      Nouvelle catégorie
+                    </h2>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                      <div>
+                        <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: 500, color: "#111827", fontFamily: "system-ui, -apple-system, sans-serif" }}>
+                          Nom de la catégorie
+                        </label>
+                        <input
+                          type="text"
+                          value={newCategoryName}
+                          onChange={(e) => setNewCategoryName(e.target.value)}
+                          placeholder="ex: Périphériques"
+                          style={{
+                            width: "100%",
+                            padding: "12px 16px",
+                            border: "1px solid #e5e7eb",
+                            borderRadius: "8px",
+                            fontSize: "14px",
+                            backgroundColor: "white",
+                            color: "#111827",
+                            fontFamily: "system-ui, -apple-system, sans-serif",
+                            boxSizing: "border-box"
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: 500, color: "#111827", fontFamily: "system-ui, -apple-system, sans-serif" }}>
+                          Type de ticket
+                        </label>
+                        <select
+                          value={newCategoryTypeCode}
+                          onChange={(e) => setNewCategoryTypeCode(e.target.value)}
+                          style={{
+                            width: "100%",
+                            padding: "12px 16px",
+                            border: "1px solid #e5e7eb",
+                            borderRadius: "8px",
+                            fontSize: "14px",
+                            backgroundColor: "white",
+                            color: "#111827",
+                            fontFamily: "system-ui, -apple-system, sans-serif",
+                            boxSizing: "border-box",
+                            cursor: "pointer",
+                            appearance: "none",
+                            backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23374151' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E\")",
+                            backgroundRepeat: "no-repeat",
+                            backgroundPosition: "right 12px center",
+                            paddingRight: "40px"
+                          }}
+                        >
+                          {categoriesTypes.map((t) => (
+                            <option key={t.id} value={t.code}>
+                              {t.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <div style={{ marginBottom: "8px", fontSize: "14px", fontWeight: 500, color: "#111827", fontFamily: "system-ui, -apple-system, sans-serif" }}>
+                          Sous-catégories
+                        </div>
+                        <div style={{ display: "flex", gap: "8px", marginBottom: "12px" }}>
+                          <input
+                            type="text"
+                            placeholder="Ajouter une sous-catégorie"
+                            disabled
+                            style={{
+                              flex: 1,
+                              padding: "12px 16px",
+                              border: "1px solid #e5e7eb",
+                              borderRadius: "8px",
+                              fontSize: "14px",
+                              backgroundColor: "#f9fafb",
+                              color: "#6b7280",
+                              fontFamily: "system-ui, -apple-system, sans-serif",
+                              boxSizing: "border-box"
+                            }}
+                          />
+                          <button
+                            type="button"
+                            style={{
+                              padding: "12px 16px",
+                              border: "1px solid #000",
+                              borderRadius: "8px",
+                              backgroundColor: "white",
+                              color: "#000",
+                              cursor: "pointer",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center"
+                            }}
+                          >
+                            <Plus size={20} color="#000" />
+                          </button>
+                        </div>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                          {/* Les sous-catégories s'afficheront ici une fois la table créée */}
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "24px" }}>
+                        <button
+                          type="button"
+                          onClick={() => setShowAddCategoryModal(false)}
+                          style={{
+                            padding: "10px 20px",
+                            background: "white",
+                            color: "#111827",
+                            border: "1px solid #e5e7eb",
+                            borderRadius: "8px",
+                            cursor: "pointer",
+                            fontSize: "14px",
+                            fontWeight: 500,
+                            fontFamily: "system-ui, -apple-system, sans-serif"
+                          }}
+                        >
+                          Annuler
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleAddCategory}
+                          style={{
+                            padding: "10px 20px",
+                            background: "hsl(25, 95%, 53%)",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "8px",
+                            cursor: "pointer",
+                            fontSize: "14px",
+                            fontWeight: 600,
+                            fontFamily: "system-ui, -apple-system, sans-serif"
+                          }}
+                        >
+                          Ajouter
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
 
