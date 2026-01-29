@@ -1230,11 +1230,45 @@ function DSIDashboard({ token }: DSIDashboardProps) {
       alert("Veuillez remplir le nom du type");
       return;
     }
-    // Note: L'API pour créer un type n'existe pas encore, donc on garde juste le comportement actuel
-    // mais on recharge les types depuis l'API après
-    setNewType({ type: "", description: "", color: "#007bff", is_active: true });
-    setShowAddTypeModal(false);
-    alert("Fonctionnalité d'ajout de type à implémenter via l'API");
+    if (!token) {
+      alert("Session expirée. Veuillez vous reconnecter.");
+      return;
+    }
+
+    try {
+      const res = await fetch("http://localhost:8000/ticket-config/types", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          label: newType.type.trim(),
+          is_active: newType.is_active,
+        }),
+      });
+
+      if (res.ok) {
+        const typesRes = await fetch("http://localhost:8000/ticket-config/types", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (typesRes.ok) {
+          const data = await typesRes.json();
+          setTicketTypes(data);
+        }
+        setNewType({ type: "", description: "", color: "#007bff", is_active: true });
+        setShowAddTypeModal(false);
+        alert("Type de ticket ajouté avec succès !");
+      } else {
+        const error = await res.json().catch(() => ({ detail: "Erreur lors de l'ajout" }));
+        alert(error.detail || "Erreur lors de l'ajout du type");
+      }
+    } catch (err) {
+      console.error("Erreur lors de l'ajout du type:", err);
+      alert("Erreur lors de l'ajout du type");
+    }
   };
 
   const handleEditType = (typeId: number) => {

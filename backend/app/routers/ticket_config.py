@@ -1,3 +1,4 @@
+import unicodedata
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, Query, HTTPException, status
@@ -32,6 +33,41 @@ def get_ticket_types(
     
     types = query.order_by(models.TicketTypeModel.label.asc()).all()
     return types
+
+
+@router.post("/types", response_model=schemas.TicketTypeConfig)
+def create_ticket_type(
+    type_create: schemas.TicketTypeCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    """
+    Crée un nouveau type de ticket.
+    Le code est généré automatiquement à partir du label (minuscules, espaces remplacés par des tirets).
+    """
+    # Générer le code à partir du label
+    code = type_create.label.strip().lower().replace(" ", "-")
+    # Nettoyer les caractères accentués pour le code
+    code = "".join(c for c in unicodedata.normalize("NFD", code) if unicodedata.category(c) != "Mn")
+    code = code or "type"
+
+    existing = db.query(models.TicketTypeModel).filter(models.TicketTypeModel.code == code).first()
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Un type avec le code '{code}' existe déjà"
+        )
+
+    ticket_type = models.TicketTypeModel(
+        code=code,
+        label=type_create.label.strip(),
+        is_active=type_create.is_active,
+    )
+    db.add(ticket_type)
+    db.commit()
+    db.refresh(ticket_type)
+
+    return ticket_type
 
 
 @router.get("/categories", response_model=List[schemas.TicketCategoryConfig])
