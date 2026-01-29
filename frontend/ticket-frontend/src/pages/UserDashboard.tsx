@@ -1452,7 +1452,13 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
         )}
 
         <div 
-          onClick={() => navigate("/dashboard/user")}
+          onClick={() => {
+            setShowTicketDetailsPage(false);
+            setTicketDetails(null);
+            setTicketHistory([]);
+            setViewTicketDetails(null);
+            navigate("/dashboard/user");
+          }}
           style={{ 
             display: "flex", 
             alignItems: "center", 
