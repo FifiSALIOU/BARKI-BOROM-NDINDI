@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useSearchParams, useLocation, useNavigate } from "react-router-dom";
-import { Users, User, Clock3, TrendingUp, Award, UserCheck, Star, LayoutDashboard, ChevronLeft, ChevronRight, Bell, BarChart3, Search, Ticket, Wrench, CheckCircle2, AlertTriangle, Clock, Briefcase, UserPlus, CornerUpRight, Box, FileText, RefreshCcw, Plus, Pencil, Trash2, ChevronDown, UserX, UserCog, Shield, Check, Layers, Monitor, X, FolderTree, Tag, Settings, Mail, Building2 } from "lucide-react";
+import { Users, User, Clock3, TrendingUp, Award, UserCheck, Star, LayoutDashboard, ChevronLeft, ChevronRight, Bell, BarChart3, Search, Ticket, Wrench, CheckCircle2, AlertTriangle, Clock, Briefcase, UserPlus, CornerUpRight, Box, FileText, RefreshCcw, Plus, Pencil, Trash2, ChevronDown, UserX, UserCog, Shield, Check, Layers, Monitor, X, FolderTree, Tag, Settings, Mail, Building2, Filter, Calendar, FileSpreadsheet } from "lucide-react";
 import React from "react";
 import helpdeskLogo from "../assets/helpdesk-logo.png";
 import jsPDF from "jspdf";
@@ -8578,6 +8578,338 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     e.currentTarget.style.backgroundColor = "#f9fafb";
                   }}
                 />
+              </div>
+
+              {/* Filtres avancés (UI uniquement, sans impact sur la logique existante) */}
+              <div
+                style={{
+                  border: "1px solid rgba(148, 163, 184, 0.5)", // border-border/50
+                  borderRadius: "12px",
+                  padding: "16px",
+                  marginBottom: "24px",
+                  backgroundColor: "#ffffff",
+                  boxShadow: "0 1px 2px rgba(15, 23, 42, 0.02)",
+                }}
+              >
+                {/* En-tête : titre + boutons Excel/PDF */}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    marginBottom: "16px",
+                    gap: "12px",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <Filter size={16} color="#f97316" />
+                    <span
+                      style={{
+                        fontSize: "14px",
+                        fontWeight: 500,
+                        color: "#0f172a",
+                      }}
+                    >
+                      Filtres avancés
+                    </span>
+                  </div>
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    <button
+                      type="button"
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        padding: "6px 10px",
+                        borderRadius: "9999px",
+                        border: "1px solid #e5e7eb",
+                        backgroundColor: "#f9fafb",
+                        fontSize: "13px",
+                        fontWeight: 500,
+                        color: "#0f172a",
+                        cursor: "default",
+                      }}
+                    >
+                      <FileSpreadsheet size={16} />
+                      <span>Excel</span>
+                    </button>
+                    <button
+                      type="button"
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        padding: "6px 10px",
+                        borderRadius: "9999px",
+                        border: "1px solid #e5e7eb",
+                        backgroundColor: "#f9fafb",
+                        fontSize: "13px",
+                        fontWeight: 500,
+                        color: "#0f172a",
+                        cursor: "default",
+                      }}
+                    >
+                      <FileText size={16} />
+                      <span>PDF</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Grille des champs de filtres avancés */}
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                    gap: "12px 16px",
+                  }}
+                >
+                  {/* Période (2 colonnes) */}
+                  <div
+                    style={{
+                      gridColumn: "span 2",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "4px",
+                    }}
+                  >
+                    <span
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        fontSize: "12px",
+                        color: "#6b7280",
+                      }}
+                    >
+                      <Calendar size={12} />
+                      <span>Période</span>
+                    </span>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        padding: "6px 10px",
+                        borderRadius: "8px",
+                        border: "1px solid #e5e7eb",
+                        backgroundColor: "#f9fafb",
+                        fontSize: "14px",
+                        color: "#6b7280",
+                        height: "36px",
+                      }}
+                    >
+                      <Calendar size={16} color="#6b7280" />
+                      <span>Sélectionner une période</span>
+                    </div>
+                  </div>
+
+                  {/* Mois */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                    <span
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        fontSize: "12px",
+                        color: "#6b7280",
+                      }}
+                    >
+                      <Calendar size={12} />
+                      <span>Mois</span>
+                    </span>
+                    <select
+                      defaultValue="all"
+                      style={{
+                        width: "100%",
+                        padding: "6px 10px",
+                        borderRadius: "8px",
+                        border: "1px solid #e5e7eb",
+                        backgroundColor: "#f9fafb",
+                        fontSize: "14px",
+                        height: "36px",
+                      }}
+                    >
+                      <option value="all">Tous les mois</option>
+                    </select>
+                  </div>
+
+                  {/* Agence */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                    <span
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        fontSize: "12px",
+                        color: "#6b7280",
+                      }}
+                    >
+                      <Building2 size={12} />
+                      <span>Agence</span>
+                    </span>
+                    <select
+                      defaultValue="all"
+                      style={{
+                        width: "100%",
+                        padding: "6px 10px",
+                        borderRadius: "8px",
+                        border: "1px solid #e5e7eb",
+                        backgroundColor: "#f9fafb",
+                        fontSize: "14px",
+                        height: "36px",
+                      }}
+                    >
+                      <option value="all">Toutes les agences</option>
+                    </select>
+                  </div>
+
+                  {/* Catégorie */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                    <span
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        fontSize: "12px",
+                        color: "#6b7280",
+                      }}
+                    >
+                      <AlertTriangle size={12} />
+                      <span>Catégorie</span>
+                    </span>
+                    <select
+                      defaultValue="all"
+                      style={{
+                        width: "100%",
+                        padding: "6px 10px",
+                        borderRadius: "8px",
+                        border: "1px solid #e5e7eb",
+                        backgroundColor: "#f9fafb",
+                        fontSize: "14px",
+                        height: "36px",
+                      }}
+                    >
+                      <option value="all">Toutes</option>
+                    </select>
+                  </div>
+
+                  {/* Type */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                    <span
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        fontSize: "12px",
+                        color: "#6b7280",
+                      }}
+                    >
+                      <Layers size={12} />
+                      <span>Type</span>
+                    </span>
+                    <select
+                      defaultValue="all"
+                      style={{
+                        width: "100%",
+                        padding: "6px 10px",
+                        borderRadius: "8px",
+                        border: "1px solid #e5e7eb",
+                        backgroundColor: "#f9fafb",
+                        fontSize: "14px",
+                        height: "36px",
+                      }}
+                    >
+                      <option value="all">Tous</option>
+                    </select>
+                  </div>
+
+                  {/* Non résolu depuis */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                    <span
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        fontSize: "12px",
+                        color: "#6b7280",
+                      }}
+                    >
+                      <Clock size={12} />
+                      <span>Non résolu depuis</span>
+                    </span>
+                    <select
+                      defaultValue="all"
+                      style={{
+                        width: "100%",
+                        padding: "6px 10px",
+                        borderRadius: "8px",
+                        border: "1px solid #e5e7eb",
+                        backgroundColor: "#f9fafb",
+                        fontSize: "14px",
+                        height: "36px",
+                      }}
+                    >
+                      <option value="all">Tous</option>
+                    </select>
+                  </div>
+
+                  {/* Utilisateur */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                    <span
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        fontSize: "12px",
+                        color: "#6b7280",
+                      }}
+                    >
+                      <User size={12} />
+                      <span>Utilisateur</span>
+                    </span>
+                    <select
+                      defaultValue="all"
+                      style={{
+                        width: "100%",
+                        padding: "6px 10px",
+                        borderRadius: "8px",
+                        border: "1px solid #e5e7eb",
+                        backgroundColor: "#f9fafb",
+                        fontSize: "14px",
+                        height: "36px",
+                      }}
+                    >
+                      <option value="all">Tous</option>
+                    </select>
+                  </div>
+
+                  {/* Créé par (nom) */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                    <span
+                      style={{
+                        fontSize: "12px",
+                        color: "#6b7280",
+                      }}
+                    >
+                      Créé par (nom)
+                    </span>
+                    <input
+                      type="text"
+                      placeholder="Rechercher..."
+                      style={{
+                        width: "100%",
+                        padding: "6px 10px",
+                        borderRadius: "8px",
+                        border: "1px solid #e5e7eb",
+                        backgroundColor: "#f9fafb",
+                        fontSize: "14px",
+                        height: "36px",
+                        color: "#111827",
+                      }}
+                    />
+                  </div>
+                </div>
               </div>
 
               <div style={{ 

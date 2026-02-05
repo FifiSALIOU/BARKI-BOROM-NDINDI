@@ -15,10 +15,12 @@
     "vite": "^7.2.4"
   },
   "dependencies": {
+    "date-fns": "^4.1.0",
     "jspdf": "^3.0.4",
     "jspdf-autotable": "^5.0.2",
     "lucide-react": "^0.556.0",
     "react": "^19.2.1",
+    "react-day-picker": "^9.13.0",
     "react-dom": "^19.2.1",
     "react-router-dom": "^7.10.0",
     "recharts": "^3.5.1",
