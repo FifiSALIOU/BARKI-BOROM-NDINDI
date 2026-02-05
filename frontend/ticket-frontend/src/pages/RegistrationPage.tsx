@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import type { FormEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import logoImage from "../assets/logo.png";
-import { User, Mail, Building2, Phone, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
+import { User, Mail, Building2, Phone, Lock, Eye, EyeOff, ArrowRight, Headphones, Shield, Clock } from "lucide-react";
 
 const primaryOrange = "#f97316";
 const darkBg = "#0f172a";
@@ -84,17 +84,58 @@ export default function RegistrationPage() {
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif" }}>
-      <div style={{ width: "50%", minHeight: "100vh", background: darkBg, padding: "48px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "24px" }}>
-          <img src={logoImage} alt="Logo" style={{ width: "64px", height: "64px", objectFit: "contain" }} />
-          <div>
-            <h1 style={{ fontSize: "28px", fontWeight: "700", color: "#fff", margin: "0 0 4px 0" }}>HelpDesk</h1>
-            <p style={{ fontSize: "16px", fontWeight: "600", color: primaryOrange, margin: 0 }}>Caisse de Sécurité Sociale</p>
+      {/* Panneau gauche - même design que la page de connexion */}
+      <div style={{
+        width: "50%",
+        minHeight: "100vh",
+        background: darkBg,
+        padding: "48px",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between"
+      }}>
+        <div style={{ marginTop: "60px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "40px" }}>
+            <img src={logoImage} alt="Logo Caisse de Sécurité Sociale" style={{ width: "64px", height: "64px", objectFit: "contain" }} />
+            <div>
+              <h1 style={{ fontSize: "28px", fontWeight: "700", color: "#ffffff", margin: "0 0 4px 0", lineHeight: "1.2" }}>HelpDesk</h1>
+              <p style={{ fontSize: "16px", fontWeight: "600", color: primaryOrange, margin: 0 }}>Caisse de Sécurité Sociale</p>
+            </div>
+          </div>
+          <p style={{ fontSize: "15px", lineHeight: "1.6", color: "rgba(255, 255, 255, 0.9)", marginBottom: "60px", maxWidth: "400px" }}>
+            Créez votre compte pour accéder au système de gestion des incidents et créer des tickets de support.
+          </p>
+          {/* Blocs Support 24/7, Sécurisé, Rapide - comme sur la page de connexion */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
+            <div style={{ display: "flex", gap: "16px", alignItems: "flex-start" }}>
+              <div style={{ width: "48px", height: "48px", borderRadius: "12px", background: "rgba(249, 115, 22, 0.2)", border: "1px solid rgba(249, 115, 22, 0.3)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <Headphones size={24} color={primaryOrange} strokeWidth={2} />
+              </div>
+              <div>
+                <h3 style={{ fontSize: "16px", fontWeight: "600", color: "#ffffff", margin: "0 0 4px 0" }}>Support 24/7</h3>
+                <p style={{ fontSize: "14px", color: "rgba(255, 255, 255, 0.7)", margin: 0, lineHeight: "1.5" }}>Assistance disponible à tout moment</p>
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: "16px", alignItems: "flex-start" }}>
+              <div style={{ width: "48px", height: "48px", borderRadius: "12px", background: "rgba(249, 115, 22, 0.2)", border: "1px solid rgba(249, 115, 22, 0.3)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <Shield size={24} color={primaryOrange} strokeWidth={2} />
+              </div>
+              <div>
+                <h3 style={{ fontSize: "16px", fontWeight: "600", color: "#ffffff", margin: "0 0 4px 0" }}>Sécurisé</h3>
+                <p style={{ fontSize: "14px", color: "rgba(255, 255, 255, 0.7)", margin: 0, lineHeight: "1.5" }}>Vos données sont protégées</p>
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: "16px", alignItems: "flex-start" }}>
+              <div style={{ width: "48px", height: "48px", borderRadius: "12px", background: "rgba(249, 115, 22, 0.2)", border: "1px solid rgba(249, 115, 22, 0.3)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <Clock size={24} color={primaryOrange} strokeWidth={2} />
+              </div>
+              <div>
+                <h3 style={{ fontSize: "16px", fontWeight: "600", color: "#ffffff", margin: "0 0 4px 0" }}>Rapide</h3>
+                <p style={{ fontSize: "14px", color: "rgba(255, 255, 255, 0.7)", margin: 0, lineHeight: "1.5" }}>Résolution efficace des incidents</p>
+              </div>
+            </div>
           </div>
         </div>
-        <p style={{ fontSize: "15px", color: "rgba(255,255,255,0.85)", lineHeight: 1.6, margin: 0 }}>
-          Créez votre compte pour accéder au système de gestion des incidents et créer des tickets de support.
-        </p>
       </div>
 
       <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "48px", background: "#fff" }}>
