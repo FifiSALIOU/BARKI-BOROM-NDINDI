@@ -453,6 +453,14 @@ function DSIDashboard({ token }: DSIDashboardProps) {
   const [agencyFilter, setAgencyFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
   const [delegationFilter, setDelegationFilter] = useState<string>("all");
+  // États pour les filtres avancés de la section Tickets (DSI)
+  const [advancedMonthFilter, setAdvancedMonthFilter] = useState<string>("all");
+  const [advancedAgencyFilter, setAdvancedAgencyFilter] = useState<string>("all");
+  const [advancedCategoryFilter, setAdvancedCategoryFilter] = useState<string>("all");
+  const [advancedTypeFilter, setAdvancedTypeFilter] = useState<string>("all");
+  const [advancedNonResolvedFilter, setAdvancedNonResolvedFilter] = useState<string>("all");
+  const [advancedUserFilter, setAdvancedUserFilter] = useState<string>("all");
+  const [advancedCreatorFilter, setAdvancedCreatorFilter] = useState<string>("");
   const [showReportsDropdown, setShowReportsDropdown] = useState<boolean>(false);
   const [showSettingsDropdown, setShowSettingsDropdown] = useState<boolean>(false);
   const [userRole, setUserRole] = useState<string | null>(null);
@@ -5335,6 +5343,39 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
     allTickets.map((t) => t.creator?.agency || t.user_agency).filter(Boolean)
   ));
 
+  // Listes de valeurs pour les filtres avancés (utilisent tes vraies données)
+  const advancedMonths = Array.from(
+    new Set(
+      allTickets
+        .filter((t) => t.created_at)
+        .map((t) => {
+          const d = new Date(t.created_at as string);
+          return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`; // YYYY-MM
+        })
+    )
+  );
+
+  const formatMonthLabel = (key: string) => {
+    const [year, month] = key.split("-");
+    const d = new Date(Number(year), Number(month) - 1, 1);
+    return d.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+  };
+
+  // Catégories actives (matériel / applicatif) depuis l'API
+  const advancedCategories = Array.from(
+    new Set(categoriesList.filter((c) => c.is_active).map((c) => c.name))
+  );
+
+  // Types de ticket existants dans les tickets
+  const advancedTypes = Array.from(
+    new Set(allTickets.map((t) => t.type).filter(Boolean))
+  );
+
+  // Utilisateurs (techniciens) associés aux tickets
+  const advancedUsers = Array.from(
+    new Set(allTickets.map((t) => t.technician?.full_name).filter(Boolean))
+  );
+
   // Filtrer les tickets selon les filtres sélectionnés
   let filteredTickets = allTickets;
   
@@ -5373,6 +5414,56 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
     } else if (delegationFilter === "not_delegated") {
       filteredTickets = filteredTickets.filter((t) => t.secretary_id === null || t.secretary_id === undefined);
     }
+  }
+
+  // --- Filtres avancés appliqués sur les tickets ---
+  if (advancedMonthFilter !== "all") {
+    filteredTickets = filteredTickets.filter((t) => {
+      if (!t.created_at) return false;
+      const d = new Date(t.created_at);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      return key === advancedMonthFilter;
+    });
+  }
+
+  if (advancedAgencyFilter !== "all") {
+    filteredTickets = filteredTickets.filter((t) => {
+      const agency = t.creator?.agency || t.user_agency;
+      return agency === advancedAgencyFilter;
+    });
+  }
+
+  if (advancedCategoryFilter !== "all") {
+    filteredTickets = filteredTickets.filter((t) => t.category === advancedCategoryFilter);
+  }
+
+  if (advancedTypeFilter !== "all") {
+    filteredTickets = filteredTickets.filter((t) => t.type === advancedTypeFilter);
+  }
+
+  if (advancedNonResolvedFilter !== "all") {
+    const days = parseInt(advancedNonResolvedFilter, 10);
+    const now = Date.now();
+    filteredTickets = filteredTickets.filter((t) => {
+      if (t.resolved_at) return false; // déjà résolu
+      if (!t.created_at || Number.isNaN(days) || days <= 0) return true;
+      const createdTime = new Date(t.created_at).getTime();
+      const diffDays = (now - createdTime) / (1000 * 60 * 60 * 24);
+      return diffDays >= days;
+    });
+  }
+
+  if (advancedUserFilter !== "all") {
+    filteredTickets = filteredTickets.filter(
+      (t) => t.technician?.full_name === advancedUserFilter
+    );
+  }
+
+  if (advancedCreatorFilter.trim() !== "") {
+    const query = advancedCreatorFilter.trim().toLowerCase();
+    filteredTickets = filteredTickets.filter((t) =>
+      (t.creator?.full_name || "").toLowerCase().includes(query)
+    );
   }
 
   return (
@@ -8580,10 +8671,10 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                 />
               </div>
 
-              {/* Filtres avancés (UI uniquement, sans impact sur la logique existante) */}
+              {/* Filtres avancés (visuel uniquement, au-dessus des filtres existants) */}
               <div
                 style={{
-                  border: "1px solid rgba(148, 163, 184, 0.5)", // border-border/50
+                  border: "1px solid rgba(148, 163, 184, 0.5)",
                   borderRadius: "12px",
                   padding: "16px",
                   marginBottom: "24px",
@@ -8617,6 +8708,38 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                   <div style={{ display: "flex", gap: "8px" }}>
                     <button
                       type="button"
+                      onClick={() => {
+                        try {
+                          const wb = XLSX.utils.book_new();
+                          const rows = filteredTickets.map((t) => ({
+                            Numéro: formatTicketNumber(t.number),
+                            Titre: t.title,
+                            Description: t.description || "",
+                            Statut: t.status,
+                            Priorité: getPriorityLabel(t.priority || "non_definie"),
+                            Catégorie: t.category || "",
+                            Type: t.type || "",
+                            Agence: t.creator?.agency || t.user_agency || "",
+                            Créé_par: t.creator?.full_name || "",
+                            Technicien: t.technician?.full_name || "",
+                            Créé_le: t.created_at
+                              ? new Date(t.created_at).toLocaleString("fr-FR")
+                              : "",
+                            Résolu_le: t.resolved_at
+                              ? new Date(t.resolved_at).toLocaleString("fr-FR")
+                              : "",
+                          }));
+                          const ws = XLSX.utils.json_to_sheet(rows);
+                          XLSX.utils.book_append_sheet(wb, ws, "Tickets");
+                          XLSX.writeFile(
+                            wb,
+                            `Tickets_DSI_${new Date().toISOString().split("T")[0]}.xlsx`
+                          );
+                        } catch (error) {
+                          console.error("Erreur export Excel tickets:", error);
+                          alert("Erreur lors de l'export Excel des tickets");
+                        }
+                      }}
                       style={{
                         display: "inline-flex",
                         alignItems: "center",
@@ -8628,7 +8751,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                         fontSize: "13px",
                         fontWeight: 500,
                         color: "#0f172a",
-                        cursor: "default",
+                        cursor: "pointer",
                       }}
                     >
                       <FileSpreadsheet size={16} />
@@ -8636,6 +8759,57 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     </button>
                     <button
                       type="button"
+                      onClick={() => {
+                        try {
+                          const doc = new jsPDF();
+                          doc.setFontSize(14);
+                          doc.text("Liste des tickets (DSI)", 14, 20);
+                          doc.setFontSize(10);
+                          doc.text(
+                            `Généré le: ${new Date().toLocaleString("fr-FR")}`,
+                            14,
+                            28
+                          );
+                          const tableData = filteredTickets.map((t) => [
+                            formatTicketNumber(t.number),
+                            t.title,
+                            getPriorityLabel(t.priority || "non_definie"),
+                            t.status,
+                            t.category || "",
+                            t.type || "",
+                            t.creator?.agency || t.user_agency || "",
+                            t.creator?.full_name || "",
+                            t.technician?.full_name || "",
+                          ]);
+                          autoTable(doc, {
+                            startY: 34,
+                            head: [
+                              [
+                                "N°",
+                                "Titre",
+                                "Priorité",
+                                "Statut",
+                                "Catégorie",
+                                "Type",
+                                "Agence",
+                                "Créé par",
+                                "Technicien",
+                              ],
+                            ],
+                            body: tableData,
+                            styles: { fontSize: 8 },
+                            headStyles: { fillColor: [15, 23, 42] },
+                          });
+                          doc.save(
+                            `Tickets_DSI_${new Date()
+                              .toISOString()
+                              .split("T")[0]}.pdf`
+                          );
+                        } catch (error) {
+                          console.error("Erreur export PDF tickets:", error);
+                          alert("Erreur lors de l'export PDF des tickets");
+                        }
+                      }}
                       style={{
                         display: "inline-flex",
                         alignItems: "center",
@@ -8647,7 +8821,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                         fontSize: "13px",
                         fontWeight: 500,
                         color: "#0f172a",
-                        cursor: "default",
+                        cursor: "pointer",
                       }}
                     >
                       <FileText size={16} />
@@ -8656,7 +8830,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                   </div>
                 </div>
 
-                {/* Grille des champs de filtres avancés */}
+                {/* Grille des champs */}
                 <div
                   style={{
                     display: "grid",
@@ -8719,7 +8893,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                       <span>Mois</span>
                     </span>
                     <select
-                      defaultValue="all"
+                      value={advancedMonthFilter}
+                      onChange={(e) => setAdvancedMonthFilter(e.target.value)}
                       style={{
                         width: "100%",
                         padding: "6px 10px",
@@ -8731,6 +8906,11 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                       }}
                     >
                       <option value="all">Tous les mois</option>
+                      {advancedMonths.map((key) => (
+                        <option key={key} value={key}>
+                          {formatMonthLabel(key)}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
@@ -8749,7 +8929,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                       <span>Agence</span>
                     </span>
                     <select
-                      defaultValue="all"
+                      value={advancedAgencyFilter}
+                      onChange={(e) => setAdvancedAgencyFilter(e.target.value)}
                       style={{
                         width: "100%",
                         padding: "6px 10px",
@@ -8761,6 +8942,11 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                       }}
                     >
                       <option value="all">Toutes les agences</option>
+                      {allAgencies.map((agency) => (
+                        <option key={agency} value={agency as string}>
+                          {agency}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
@@ -8779,7 +8965,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                       <span>Catégorie</span>
                     </span>
                     <select
-                      defaultValue="all"
+                      value={advancedCategoryFilter}
+                      onChange={(e) => setAdvancedCategoryFilter(e.target.value)}
                       style={{
                         width: "100%",
                         padding: "6px 10px",
@@ -8791,6 +8978,11 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                       }}
                     >
                       <option value="all">Toutes</option>
+                      {advancedCategories.map((category) => (
+                        <option key={category as string} value={category as string}>
+                          {category}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
@@ -8809,7 +9001,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                       <span>Type</span>
                     </span>
                     <select
-                      defaultValue="all"
+                      value={advancedTypeFilter}
+                      onChange={(e) => setAdvancedTypeFilter(e.target.value)}
                       style={{
                         width: "100%",
                         padding: "6px 10px",
@@ -8821,6 +9014,11 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                       }}
                     >
                       <option value="all">Tous</option>
+                      {advancedTypes.map((type) => (
+                        <option key={type as string} value={type as string}>
+                          {type}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
@@ -8839,7 +9037,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                       <span>Non résolu depuis</span>
                     </span>
                     <select
-                      defaultValue="all"
+                      value={advancedNonResolvedFilter}
+                      onChange={(e) => setAdvancedNonResolvedFilter(e.target.value)}
                       style={{
                         width: "100%",
                         padding: "6px 10px",
@@ -8851,6 +9050,9 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                       }}
                     >
                       <option value="all">Tous</option>
+                      <option value="7">Depuis 7 jours</option>
+                      <option value="30">Depuis 30 jours</option>
+                      <option value="90">Depuis 90 jours</option>
                     </select>
                   </div>
 
@@ -8869,7 +9071,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                       <span>Utilisateur</span>
                     </span>
                     <select
-                      defaultValue="all"
+                      value={advancedUserFilter}
+                      onChange={(e) => setAdvancedUserFilter(e.target.value)}
                       style={{
                         width: "100%",
                         padding: "6px 10px",
@@ -8881,6 +9084,11 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                       }}
                     >
                       <option value="all">Tous</option>
+                      {advancedUsers.map((u) => (
+                        <option key={u as string} value={u as string}>
+                          {u}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
@@ -8897,6 +9105,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     <input
                       type="text"
                       placeholder="Rechercher..."
+                      value={advancedCreatorFilter}
+                      onChange={(e) => setAdvancedCreatorFilter(e.target.value)}
                       style={{
                         width: "100%",
                         padding: "6px 10px",
