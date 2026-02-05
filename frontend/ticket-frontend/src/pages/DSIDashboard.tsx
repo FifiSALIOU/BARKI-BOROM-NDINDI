@@ -5371,9 +5371,14 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
     new Set(allTickets.map((t) => t.type).filter(Boolean))
   );
 
-  // Utilisateurs pour le filtre "Utilisateur" : tous les utilisateurs connus (pas seulement les techniciens)
+  // Utilisateurs pour le filtre "Utilisateur" : tous les utilisateurs connus (sauf Administrateur)
   const advancedUsers = Array.from(
-    new Set(allUsers.map((u: any) => u.full_name).filter(Boolean))
+    new Set(
+      allUsers
+        .filter((u: any) => u.role?.name !== "Admin")
+        .map((u: any) => u.full_name)
+        .filter(Boolean)
+    )
   );
 
   // Filtrer les tickets selon les filtres sélectionnés
