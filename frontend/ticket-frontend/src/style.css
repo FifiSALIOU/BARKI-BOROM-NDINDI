@@ -17,6 +17,9 @@
 
 .rdp-caption {
   padding: 0.25rem 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .rdp-table {
@@ -29,6 +32,12 @@
   line-height: 1.8rem;
   font-size: 12px;
   padding: 0;
+}
+
+.rdp-caption_label {
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: none;
 }
 
 body {
