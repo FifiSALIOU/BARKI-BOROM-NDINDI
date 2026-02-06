@@ -8916,6 +8916,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                           selected={advancedPeriodRange}
                           onSelect={(range) => setAdvancedPeriodRange(range)}
                           defaultMonth={advancedPeriodRange?.from ?? new Date()}
+                          navLayout="around"
                           styles={{
                             months: { flexWrap: "nowrap", display: "flex", gap: "2rem" },
                           }}

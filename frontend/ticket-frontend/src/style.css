@@ -57,6 +57,11 @@
   justify-content: center;
 }
 
+/* Titres des mois (février, mars) centrés au-dessus de chaque calendrier */
+.rdp-root .rdp-month_caption {
+  justify-content: center;
+}
+
 .rdp-table {
   border-spacing: 0.15rem;
 }
