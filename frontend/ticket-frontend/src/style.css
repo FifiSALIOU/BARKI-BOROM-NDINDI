@@ -15,6 +15,41 @@
   gap: 0.5rem;
 }
 
+/* Pas de carte visible pour les mois : uniquement le contenu (jours, chiffres) sur le fond blanc */
+.rdp-root .rdp-month {
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+}
+
+/* Pas de fond blanc sur les cellules : seul le fond blanc global du calendrier suffit */
+.rdp-root .rdp-day,
+.rdp-root .rdp-day_button,
+.rdp-root .rdp-weekday {
+  background: transparent !important;
+}
+
+/* Pas de grille : pas de bordures ni traits, juste le contenu */
+.rdp-root .rdp-month_grid,
+.rdp-root .rdp-month_grid table,
+.rdp-root .rdp-month_grid td,
+.rdp-root .rdp-month_grid th,
+.rdp-root .rdp-day,
+.rdp-root .rdp-weekday,
+.rdp-root .rdp-day_button {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+.rdp-root .rdp-month_grid {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+.rdp-root .rdp-month_grid table {
+  border: none !important;
+}
+
 .rdp-caption {
   padding: 0.25rem 0.5rem;
   display: flex;
