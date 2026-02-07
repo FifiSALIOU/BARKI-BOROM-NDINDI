@@ -6136,6 +6136,59 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
 
           {currentActiveSection === "tickets" && (
             <>
+              {/* Barre de recherche (au-dessus des filtres avancés, comme DSI) */}
+              <div style={{ 
+                display: "flex", 
+                alignItems: "center", 
+                position: "relative",
+                width: "100%",
+                maxWidth: "500px",
+                marginTop: "24px",
+                marginBottom: "16px"
+              }}>
+                <Search 
+                  size={18} 
+                  color="#6b7280" 
+                  style={{ 
+                    position: "absolute", 
+                    left: "12px", 
+                    pointerEvents: "none",
+                    zIndex: 1
+                  }} 
+                />
+                <input
+                  type="text"
+                  placeholder="Rechercher un ticket..."
+                  value={ticketSearchQuery}
+                  onChange={(e) => setTicketSearchQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      loadTickets(ticketSearchQuery);
+                    }
+                  }}
+                  style={{
+                    width: "100%",
+                    padding: "8px 12px 8px 38px",
+                    border: "1px solid #e5e7eb",
+                    borderRadius: "8px",
+                    fontSize: "14px",
+                    fontFamily: "system-ui, -apple-system, sans-serif",
+                    backgroundColor: "#f9fafb",
+                    color: "#111827",
+                    outline: "none",
+                    transition: "border-color 0.2s",
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = "#3b82f6";
+                    e.currentTarget.style.backgroundColor = "#ffffff";
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = "#e5e7eb";
+                    e.currentTarget.style.backgroundColor = "#f9fafb";
+                  }}
+                />
+              </div>
+
               {/* Filtres avancés (Adjoint DSI uniquement, au-dessus des 4 filtres existants) */}
               {roleName === "Adjoint DSI" && (
                 <div style={{ border: "1px solid rgba(148, 163, 184, 0.5)", borderRadius: "12px", padding: "16px", marginTop: "8px", marginBottom: "24px", backgroundColor: "#ffffff", boxShadow: "0 1px 2px rgba(15, 23, 42, 0.02)" }}>
