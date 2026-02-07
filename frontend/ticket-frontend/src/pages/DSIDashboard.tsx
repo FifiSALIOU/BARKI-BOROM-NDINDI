@@ -2151,8 +2151,8 @@ function DSIDashboard({ token }: DSIDashboardProps) {
           }
         }
 
-        // Charger tous les tickets
-        const ticketsData = await loadTickets();
+        // Charger les tickets (avec recherche si saisie, comme Adjoint DSI)
+        const ticketsData = await loadTickets(ticketSearchQuery);
 
         // Charger les priorités actives (table priorities, is_active = true) pour le formulaire d'assignation
         try {
