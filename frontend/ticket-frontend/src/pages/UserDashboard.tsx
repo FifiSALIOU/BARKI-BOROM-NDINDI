@@ -3658,14 +3658,6 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                   )}
 
                   <div style={{ display: "flex", gap: "16px", marginBottom: "16px", flexWrap: "wrap" }}>
-                    {selectedNotificationTicketDetails.type && (
-                      <div>
-                        <strong>Type :</strong>
-                        <span style={{ marginLeft: "8px", padding: "4px 8px", background: "#e3f2fd", borderRadius: "4px" }}>
-                          {selectedNotificationTicketDetails.type === "materiel" ? "Matériel" : "Applicatif"}
-                        </span>
-                      </div>
-                    )}
                     {selectedNotificationTicketDetails.priority != null && selectedNotificationTicketDetails.priority !== "" && (
                       <div>
                         <strong>Priorité :</strong>
@@ -3675,7 +3667,7 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                           borderRadius: "4px",
                           fontSize: "12px",
                           fontWeight: "500",
-                          background: selectedNotificationTicketDetails.priority === "critique" ? "#f44336" : selectedNotificationTicketDetails.priority === "haute" ? "rgba(245, 158, 11, 0.1)" : selectedNotificationTicketDetails.priority === "moyenne" ? "rgba(13, 173, 219, 0.1)" : selectedNotificationTicketDetails.priority === "faible" ? "#E5E7EB" : "#9e9e9e",
+                          background: selectedNotificationTicketDetails.priority === "critique" ? "rgba(229, 62, 62, 0.1)" : selectedNotificationTicketDetails.priority === "haute" ? "rgba(245, 158, 11, 0.1)" : selectedNotificationTicketDetails.priority === "moyenne" ? "rgba(13, 173, 219, 0.1)" : selectedNotificationTicketDetails.priority === "faible" ? "#E5E7EB" : "#9e9e9e",
                           color: selectedNotificationTicketDetails.priority === "critique" ? "#E53E3E" : selectedNotificationTicketDetails.priority === "haute" ? "#F59E0B" : selectedNotificationTicketDetails.priority === "moyenne" ? "#0DADDB" : selectedNotificationTicketDetails.priority === "faible" ? "#6B7280" : "white"
                         }}>
                           {getPriorityLabel(selectedNotificationTicketDetails.priority)}
@@ -3683,36 +3675,45 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                       </div>
                     )}
                     <div>
-                      <strong>Statut :</strong>
+                      <strong>Type :</strong>
                       <span style={{ marginLeft: "8px", padding: "4px 8px", borderRadius: "4px" }}>
-                        {selectedNotificationTicketDetails.status}
+                        {selectedNotificationTicketDetails.type === "materiel" ? "Matériel" : selectedNotificationTicketDetails.type === "applicatif" ? "Applicatif" : selectedNotificationTicketDetails.type || "—"}
                       </span>
                     </div>
-                    {selectedNotificationTicketDetails.category && (
-                      <div>
-                        <strong>Catégorie :</strong>
-                        <span style={{ marginLeft: "8px", padding: "4px 8px", borderRadius: "4px" }}>
-                          {selectedNotificationTicketDetails.category}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div style={{ display: "flex", gap: "16px", marginBottom: "16px", flexWrap: "wrap" }}>
+                    <div>
+                      <strong>Catégorie :</strong>
+                      <span style={{ marginLeft: "8px", padding: "4px 8px", borderRadius: "4px" }}>
+                        {selectedNotificationTicketDetails.category || "Non spécifiée"}
+                      </span>
+                    </div>
+                    <div>
+                      <strong>Statut :</strong>
+                      <span style={{
+                        marginLeft: "8px",
+                        padding: "4px 8px",
+                        borderRadius: "4px",
+                        fontSize: "12px",
+                        fontWeight: "500",
+                        background: selectedNotificationTicketDetails.status === "en_attente_analyse" ? "rgba(13, 173, 219, 0.1)" : selectedNotificationTicketDetails.status === "assigne_technicien" ? "rgba(255, 122, 27, 0.1)" : selectedNotificationTicketDetails.status === "en_cours" ? "rgba(15, 31, 61, 0.1)" : selectedNotificationTicketDetails.status === "resolu" ? "rgba(47, 158, 68, 0.1)" : selectedNotificationTicketDetails.status === "rejete" ? "#fee2e2" : selectedNotificationTicketDetails.status === "cloture" ? "#E5E7EB" : "#f3f4f6",
+                        color: selectedNotificationTicketDetails.status === "en_attente_analyse" ? "#0DADDB" : selectedNotificationTicketDetails.status === "assigne_technicien" ? "#FF7A1B" : selectedNotificationTicketDetails.status === "en_cours" ? "#0F1F3D" : selectedNotificationTicketDetails.status === "resolu" ? "#2F9E44" : selectedNotificationTicketDetails.status === "rejete" ? "#991b1b" : selectedNotificationTicketDetails.status === "cloture" ? "#374151" : "#6b7280"
+                      }}>
+                        {getStatusLabel(selectedNotificationTicketDetails.status)}
+                      </span>
+                    </div>
                     {selectedNotificationTicketDetails.creator && (
                       <div>
                         <strong>Créateur :</strong>
-                        <p style={{ marginTop: "4px" }}>
+                        <span style={{ marginLeft: "8px" }}>
                           {selectedNotificationTicketDetails.creator.full_name}
-                        </p>
+                        </span>
                       </div>
                     )}
                     {selectedNotificationTicketDetails.technician && (
                       <div>
                         <strong>Technicien assigné :</strong>
-                        <p style={{ marginTop: "4px" }}>
+                        <span style={{ marginLeft: "8px" }}>
                           {selectedNotificationTicketDetails.technician.full_name}
-                        </p>
+                        </span>
                       </div>
                     )}
                   </div>
@@ -4895,37 +4896,56 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                               borderRadius: "4px",
                               fontSize: "12px",
                               fontWeight: "500",
-                              background: selectedNotificationTicketDetails.priority === "critique" ? "#f44336" : selectedNotificationTicketDetails.priority === "haute" ? "rgba(245, 158, 11, 0.1)" : selectedNotificationTicketDetails.priority === "moyenne" ? "rgba(13, 173, 219, 0.1)" : "#9e9e9e",
-                              color: selectedNotificationTicketDetails.priority === "haute" ? "#F59E0B" : "white"
+                              background: selectedNotificationTicketDetails.priority === "critique" ? "rgba(229, 62, 62, 0.1)" : selectedNotificationTicketDetails.priority === "haute" ? "rgba(245, 158, 11, 0.1)" : selectedNotificationTicketDetails.priority === "moyenne" ? "rgba(13, 173, 219, 0.1)" : selectedNotificationTicketDetails.priority === "faible" ? "#E5E7EB" : "#9e9e9e",
+                              color: selectedNotificationTicketDetails.priority === "critique" ? "#E53E3E" : selectedNotificationTicketDetails.priority === "haute" ? "#F59E0B" : selectedNotificationTicketDetails.priority === "moyenne" ? "#0DADDB" : selectedNotificationTicketDetails.priority === "faible" ? "#6B7280" : "white"
                             }}>
                               {getPriorityLabel(selectedNotificationTicketDetails.priority)}
                             </span>
                           </div>
                         )}
                         <div>
-                          <strong>Statut :</strong>
+                          <strong>Type :</strong>
                           <span style={{ marginLeft: "8px", padding: "4px 8px", borderRadius: "4px" }}>
-                            {selectedNotificationTicketDetails.status}
+                            {selectedNotificationTicketDetails.type === "materiel" ? "Matériel" : selectedNotificationTicketDetails.type === "applicatif" ? "Applicatif" : selectedNotificationTicketDetails.type || "—"}
                           </span>
                         </div>
-                        {selectedNotificationTicketDetails.category && (
+                        <div>
+                          <strong>Catégorie :</strong>
+                          <span style={{ marginLeft: "8px", padding: "4px 8px", borderRadius: "4px" }}>
+                            {selectedNotificationTicketDetails.category || "Non spécifiée"}
+                          </span>
+                        </div>
+                        <div>
+                          <strong>Statut :</strong>
+                          <span style={{
+                            marginLeft: "8px",
+                            padding: "4px 8px",
+                            borderRadius: "4px",
+                            fontSize: "12px",
+                            fontWeight: "500",
+                            background: selectedNotificationTicketDetails.status === "en_attente_analyse" ? "rgba(13, 173, 219, 0.1)" : selectedNotificationTicketDetails.status === "assigne_technicien" ? "rgba(255, 122, 27, 0.1)" : selectedNotificationTicketDetails.status === "en_cours" ? "rgba(15, 31, 61, 0.1)" : selectedNotificationTicketDetails.status === "resolu" ? "rgba(47, 158, 68, 0.1)" : selectedNotificationTicketDetails.status === "rejete" ? "#fee2e2" : selectedNotificationTicketDetails.status === "cloture" ? "#E5E7EB" : "#f3f4f6",
+                            color: selectedNotificationTicketDetails.status === "en_attente_analyse" ? "#0DADDB" : selectedNotificationTicketDetails.status === "assigne_technicien" ? "#FF7A1B" : selectedNotificationTicketDetails.status === "en_cours" ? "#0F1F3D" : selectedNotificationTicketDetails.status === "resolu" ? "#2F9E44" : selectedNotificationTicketDetails.status === "rejete" ? "#991b1b" : selectedNotificationTicketDetails.status === "cloture" ? "#374151" : "#6b7280"
+                          }}>
+                            {getStatusLabel(selectedNotificationTicketDetails.status)}
+                          </span>
+                        </div>
+                        {selectedNotificationTicketDetails.creator && (
                           <div>
-                            <strong>Catégorie :</strong>
-                            <span style={{ marginLeft: "8px", padding: "4px 8px", borderRadius: "4px" }}>
-                              {selectedNotificationTicketDetails.category}
+                            <strong>Créateur :</strong>
+                            <span style={{ marginLeft: "8px" }}>
+                              {selectedNotificationTicketDetails.creator.full_name}
+                            </span>
+                          </div>
+                        )}
+                        {selectedNotificationTicketDetails.technician && (
+                          <div>
+                            <strong>Technicien assigné :</strong>
+                            <span style={{ marginLeft: "8px" }}>
+                              {selectedNotificationTicketDetails.technician.full_name}
                             </span>
                           </div>
                         )}
                       </div>
-
-                      {selectedNotificationTicketDetails.technician && (
-                        <div style={{ marginBottom: "16px" }}>
-                          <strong>Technicien assigné :</strong>
-                          <p style={{ marginTop: "4px" }}>
-                            {selectedNotificationTicketDetails.technician.full_name}
-                          </p>
-                        </div>
-                      )}
 
                       <div style={{ marginTop: "24px", marginBottom: "16px" }}>
                         <strong>Historique :</strong>
