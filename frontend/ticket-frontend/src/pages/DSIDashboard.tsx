@@ -548,7 +548,7 @@ function DSIDashboard({ token }: DSIDashboardProps) {
     if (path === "/dashboard/admin/technicians" || path === "/dashboard/dsi/technicians") return "technicians";
     if (path === "/dashboard/admin/actifs" || path === "/dashboard/dsi/actifs") return "actifs";
     if (path === "/dashboard/admin/types" || path === "/dashboard/dsi/types") return "types";
-    if (path === "/dashboard/admin/categories") return "categories";
+    if (path === "/dashboard/admin/categories" || path === "/dashboard/dsi/categories") return "categories";
     if (path === "/dashboard/admin/tickets" || path === "/dashboard/dsi/tickets") return "tickets";
     // Vérifier les sous-sections de paramètres en premier (ordre important)
     if (path === "/dashboard/admin/parametres/apparence") return "apparence";
@@ -1938,15 +1938,16 @@ function DSIDashboard({ token }: DSIDashboardProps) {
   }, [activeSection, userRole, token]);
 
   // Charger types et catégories pour:
-  // - la section Catégories (Admin)
+  // - la section Catégories (Admin et DSI)
   // - la section Tickets (DSI) pour alimenter le filtre Catégorie
   useEffect(() => {
     if (!token) return;
 
     const isAdminCategories = activeSection === "categories" && userRole === "Admin";
+    const isDSICategories = activeSection === "categories" && userRole === "DSI";
     const isDSITickets = activeSection === "tickets" && userRole === "DSI";
 
-    if (!isAdminCategories && !isDSITickets) return;
+    if (!isAdminCategories && !isDSICategories && !isDSITickets) return;
 
     async function loadCategoriesData() {
       setLoadingCategories(true);
@@ -5891,6 +5892,27 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
         )}
         {userRole !== "Admin" && (
           <div 
+            onClick={() => navigate(`${getRoutePrefix()}/categories`)}
+            style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              gap: "12px", 
+              padding: "10px", 
+              cursor: "pointer",
+              color: "white",
+              borderRadius: "4px",
+              background: activeSection === "categories" ? "hsl(25, 95%, 53%)" : "transparent",
+              marginBottom: "8px"
+            }}
+          >
+            <div style={{ width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <FolderTree size={18} color={activeSection === "categories" ? "white" : "rgba(180, 180, 180, 0.7)"} strokeWidth={2} />
+            </div>
+            <div style={{ fontSize: "16px", fontFamily: "'Inter', system-ui, sans-serif", fontWeight: "500" }}>Catégories</div>
+          </div>
+        )}
+        {userRole !== "Admin" && (
+          <div 
             onClick={() => navigate(`${getRoutePrefix()}/technicians`)}
             style={{ 
               display: "flex", 
@@ -6323,6 +6345,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                 ? "Tickets"
                 : activeSection === "types"
                 ? "Types"
+                : activeSection === "categories"
+                ? "Catégories"
                 : activeSection === "technicians"
                 ? "Équipe"
                 : activeSection === "reports"
@@ -6350,6 +6374,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                 ? "Gérez tous vos tickets"
                 : activeSection === "types"
                 ? "Types de tickets (Matériel / Applicatif)"
+                : activeSection === "categories"
+                ? "Gérez les catégories par type de ticket"
                 : activeSection === "technicians"
                 ? "Gestion des membres de l'équipe DSI et des techniciens"
                 : activeSection === "reports"
@@ -12789,7 +12815,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
             );
           })()}
 
-          {activeSection === "categories" && userRole === "Admin" && (
+          {activeSection === "categories" && (userRole === "Admin" || userRole === "DSI") && (
             <div style={{ padding: "24px", background: "white", minHeight: "100%" }}>
               {/* Header */}
               <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", marginBottom: "24px" }}>

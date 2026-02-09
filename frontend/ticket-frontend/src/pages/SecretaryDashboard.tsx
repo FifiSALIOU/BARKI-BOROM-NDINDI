@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useSearchParams, useLocation, useNavigate } from "react-router-dom";
-import { Clock3, Users, CheckCircle2, CheckCircle, ChevronRight, ChevronLeft, ChevronDown, LayoutDashboard, Bell, Search, Clock, Monitor, Wrench, Forward, AlertTriangle, BarChart3, TrendingUp, Box, UserPlus, FileText, UserCheck, RefreshCcw, Filter, Calendar, Layers, Building2, User, FileSpreadsheet, MessageCircle, Flag, Share2, Package, Trash2, DollarSign, Ticket as TicketIcon, Archive, Banknote, Download, Plus, Pencil, X } from "lucide-react";
+import { Clock3, Users, CheckCircle2, CheckCircle, ChevronRight, ChevronLeft, ChevronDown, LayoutDashboard, Bell, Search, Clock, Monitor, Wrench, Forward, AlertTriangle, BarChart3, TrendingUp, Box, UserPlus, FileText, UserCheck, RefreshCcw, Filter, Calendar, Layers, Building2, User, FileSpreadsheet, MessageCircle, Flag, Share2, Package, Trash2, DollarSign, Ticket as TicketIcon, Archive, Banknote, Download, Plus, Pencil, X, FolderTree, Tag } from "lucide-react";
 import helpdeskLogo from "../assets/helpdesk-logo.png";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -344,6 +344,17 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
   const [editingType, setEditingType] = useState<number | null>(null);
   const [newType, setNewType] = useState({ type: "", description: "", color: "#007bff", is_active: true });
   const [loadingTypes, setLoadingTypes] = useState(false);
+  // États pour la section Catégories (Adjoint DSI) – même contenu que Admin
+  const [categoriesTypes, setCategoriesTypes] = useState<Array<{ id: number; code: string; label: string; is_active: boolean }>>([]);
+  const [loadingCategories, setLoadingCategories] = useState(false);
+  const [expandedCategoryType, setExpandedCategoryType] = useState<string | null>(null);
+  const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [newCategoryTypeCode, setNewCategoryTypeCode] = useState("");
+  const [showEditCategoryModal, setShowEditCategoryModal] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<{ id: number; name: string; type_code: string; is_active: boolean } | null>(null);
+  const [editCategoryName, setEditCategoryName] = useState("");
+  const [editCategoryTypeCode, setEditCategoryTypeCode] = useState("");
 
   // Fonction pour déterminer la section active basée sur l'URL (uniquement pour Adjoint DSI)
   function getActiveSectionFromPath(): string {
@@ -355,6 +366,7 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
     if (location.pathname === "/dashboard/adjoint/technicians") return "technicians";
     if (location.pathname === "/dashboard/adjoint/actifs") return "actifs";
     if (location.pathname === "/dashboard/adjoint/types") return "types";
+    if (location.pathname === "/dashboard/adjoint/categories") return "categories";
     if (location.pathname === "/dashboard/adjoint/tickets") return "tickets";
     if (location.pathname === "/dashboard/adjoint") return "dashboard";
     return activeSection;
@@ -384,6 +396,27 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
         .finally(() => { if (!cancelled) setLoadingTypes(false); });
       return () => { cancelled = true; };
     }
+  }, [currentActiveSection, roleName, token]);
+
+  // Charger types et catégories pour la section Catégories (Adjoint DSI)
+  useEffect(() => {
+    if (currentActiveSection !== "categories" || roleName !== "Adjoint DSI" || !token) return;
+    let cancelled = false;
+    setLoadingCategories(true);
+    Promise.all([
+      fetch("http://localhost:8000/ticket-config/types", { headers: { Authorization: `Bearer ${token}` } }),
+      fetch("http://localhost:8000/ticket-config/categories", { headers: { Authorization: `Bearer ${token}` } }),
+    ])
+      .then(([typesRes, catRes]) => Promise.all([typesRes.ok ? typesRes.json() : [], catRes.ok ? catRes.json() : []]))
+      .then(([typesData, catData]) => {
+        if (!cancelled) {
+          setCategoriesTypes(typesData);
+          setCategoriesList(catData);
+        }
+      })
+      .catch(() => { if (!cancelled) setCategoriesTypes([]); })
+      .finally(() => { if (!cancelled) setLoadingCategories(false); });
+    return () => { cancelled = true; };
   }, [currentActiveSection, roleName, token]);
 
   // Fonction pour obtenir le libellé d'une priorité
@@ -500,6 +533,69 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
       alert("Erreur lors de la suppression du type");
     }
   };
+
+  // Handlers pour la section Catégories (Adjoint DSI)
+  async function handleAddCategory() {
+    if (!token?.trim()) { alert("Session expirée. Veuillez vous reconnecter."); return; }
+    const name = newCategoryName?.trim();
+    if (!name) { alert("Le nom de la catégorie est obligatoire."); return; }
+    const selectedType = categoriesTypes.find((t) => t.code === newCategoryTypeCode);
+    if (!selectedType) { alert("Veuillez sélectionner un type de ticket."); return; }
+    try {
+      const res = await fetch("http://localhost:8000/ticket-config/categories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ name, ticket_type_id: selectedType.id, is_active: true }),
+      });
+      if (res.ok) {
+        const [typesRes, categoriesRes] = await Promise.all([
+          fetch("http://localhost:8000/ticket-config/types", { headers: { Authorization: `Bearer ${token}` } }),
+          fetch("http://localhost:8000/ticket-config/categories", { headers: { Authorization: `Bearer ${token}` } }),
+        ]);
+        if (typesRes.ok) setCategoriesTypes(await typesRes.json());
+        if (categoriesRes.ok) setCategoriesList(await categoriesRes.json());
+        setShowAddCategoryModal(false);
+        setNewCategoryName("");
+        setNewCategoryTypeCode(categoriesTypes[0]?.code ?? "");
+      } else {
+        const err = await res.json().catch(() => ({ detail: "Erreur lors de l'ajout" }));
+        alert(err.detail || "Erreur lors de l'ajout de la catégorie");
+      }
+    } catch (err) {
+      console.error("Erreur lors de l'ajout de la catégorie:", err);
+      alert("Erreur lors de l'ajout de la catégorie");
+    }
+  }
+  async function handleUpdateCategory() {
+    if (!editingCategory || !token?.trim()) { if (!token?.trim()) alert("Session expirée. Veuillez vous reconnecter."); return; }
+    const name = editCategoryName?.trim();
+    if (!name) { alert("Le nom de la catégorie est obligatoire."); return; }
+    const selectedType = categoriesTypes.find((t) => t.code === editCategoryTypeCode);
+    if (!selectedType) { alert("Veuillez sélectionner un type de ticket."); return; }
+    try {
+      const res = await fetch(`http://localhost:8000/ticket-config/categories/${editingCategory.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ name, ticket_type_id: selectedType.id, is_active: editingCategory.is_active }),
+      });
+      if (res.ok) {
+        const [typesRes, categoriesRes] = await Promise.all([
+          fetch("http://localhost:8000/ticket-config/types", { headers: { Authorization: `Bearer ${token}` } }),
+          fetch("http://localhost:8000/ticket-config/categories", { headers: { Authorization: `Bearer ${token}` } }),
+        ]);
+        if (typesRes.ok) setCategoriesTypes(await typesRes.json());
+        if (categoriesRes.ok) setCategoriesList(await categoriesRes.json());
+        setShowEditCategoryModal(false);
+        setEditingCategory(null);
+      } else {
+        const err = await res.json().catch(() => ({ detail: "Erreur lors de la modification" }));
+        alert(err.detail || "Erreur lors de la modification de la catégorie");
+      }
+    } catch (err) {
+      console.error("Erreur lors de la modification de la catégorie:", err);
+      alert("Erreur lors de la modification de la catégorie");
+    }
+  }
 
   // Fonction helper pour déterminer l'icône et les couleurs de la timeline d'historique
   const getHistoryVisuals = (entry: TicketHistory) => {
@@ -3798,6 +3894,26 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
         )}
         {roleName === "Adjoint DSI" && (
         <div 
+          onClick={() => navigate("/dashboard/adjoint/categories")}
+          style={{ 
+            display: "flex", 
+            alignItems: "center", 
+            gap: "12px", 
+            padding: "10px", 
+            background: currentActiveSection === "categories" ? "hsl(25, 95%, 53%)" : "transparent",
+            borderRadius: "8px",
+            cursor: "pointer",
+            marginBottom: "8px"
+          }}
+        >
+          <div style={{ width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <FolderTree size={18} color={currentActiveSection === "categories" ? "white" : "rgba(180, 180, 180, 0.7)"} strokeWidth={2} />
+          </div>
+          <div style={{ fontSize: "16px", fontFamily: "'Inter', system-ui, sans-serif", fontWeight: "500" }}>Catégories</div>
+        </div>
+        )}
+        {roleName === "Adjoint DSI" && (
+        <div 
           onClick={() => {
             navigate("/dashboard/adjoint/actifs");
           }}
@@ -4019,7 +4135,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
               color: "#111827",
               fontFamily: "system-ui, -apple-system, sans-serif"
             }}>
-              {currentActiveSection === "actifs" ? "Gestion des Actifs" : currentActiveSection === "types" ? "Types" : "Tableau de bord"}
+              {currentActiveSection === "actifs" ? "Gestion des Actifs" : currentActiveSection === "types" ? "Types" : currentActiveSection === "categories" ? "Catégories" : "Tableau de bord"}
             </div>
             <div style={{ 
               fontSize: "13px", 
@@ -4031,6 +4147,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                 ? "Gérez l'inventaire des équipements informatiques"
                 : currentActiveSection === "types"
                 ? "Types de tickets (Matériel / Applicatif)"
+                : currentActiveSection === "categories"
+                ? "Gérez les catégories par type de ticket"
                 : "Vue d'ensemble de votre activité"}
             </div>
           </div>
@@ -6427,6 +6545,111 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                         <button type="submit" style={{ padding: "10px 20px", background: "#F58220", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: "700", height: "40px", boxSizing: "border-box", display: "flex", alignItems: "center", justifyContent: "center" }}>{editingType ? "Modifier" : "Ajouter"}</button>
                       </div>
                     </form>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {currentActiveSection === "categories" && roleName === "Adjoint DSI" && (
+            <div style={{ padding: "24px", background: "white", minHeight: "100%" }}>
+              <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", marginBottom: "24px" }}>
+                <button type="button" style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "10px 20px", backgroundColor: "hsl(25, 95%, 53%)", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 500 }} onClick={() => { setNewCategoryName(""); setNewCategoryTypeCode(categoriesTypes[0]?.code ?? ""); setShowAddCategoryModal(true); }}>
+                  <Plus size={18} />
+                  Nouvelle catégorie
+                </button>
+              </div>
+              {loadingCategories ? (
+                <div style={{ textAlign: "center", padding: "40px", color: "#64748b", fontSize: "14px" }}>Chargement des catégories...</div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                  {categoriesTypes.map((typeItem) => {
+                    const count = categoriesList.filter((c) => c.type_code === typeItem.code).length;
+                    const isMateriel = typeItem.code === "materiel" || typeItem.label.toLowerCase().includes("matériel") || typeItem.label.toLowerCase().includes("materiel");
+                    const isExpanded = expandedCategoryType === typeItem.code;
+                    const subCategories = categoriesList.filter((c) => c.type_code === typeItem.code);
+                    return (
+                      <div key={typeItem.id} style={{ background: "white", borderRadius: "0.75rem", border: "1px solid #e2e8f0", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", overflow: "hidden" }}>
+                        <div onClick={() => setExpandedCategoryType(isExpanded ? null : typeItem.code)} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "16px 20px", cursor: "pointer" }}>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{isMateriel ? <Wrench size={18} color="hsl(25, 95%, 53%)" /> : <Monitor size={18} color="#1E3A5F" />}</div>
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px", flex: 1 }}>
+                            <span style={{ fontSize: "14px", fontWeight: 500, color: "#111827" }}>{typeItem.label}</span>
+                            <span style={{ minWidth: "22px", height: "22px", borderRadius: "9999px", backgroundColor: "hsl(25, 95%, 53%)", color: "white", fontSize: "12px", fontWeight: 500, display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "0 8px" }}>{count}</span>
+                          </div>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", transition: "transform 0.2s ease", transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)" }}><ChevronDown size={18} color="#64748b" /></div>
+                        </div>
+                        {isExpanded && (
+                          <div style={{ borderTop: "1px solid #e2e8f0", padding: "16px 20px", background: "white" }}>
+                            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                              {subCategories.length === 0 ? <div style={{ color: "#64748b", fontSize: "13px" }}>Aucune catégorie</div> : subCategories.map((cat) => (
+                                <div key={cat.id} style={{ background: "#fff", borderRadius: "0.75rem", border: "1px solid #e2e8f0", padding: "16px 20px" }}>
+                                  <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
+                                    <Tag size={18} color="#64748b" />
+                                    <div style={{ display: "flex", alignItems: "center", gap: "8px", flex: 1 }}>
+                                      <span style={{ fontSize: "14px", fontWeight: 500, color: "#111827" }}>{cat.name}</span>
+                                      {cat.is_active && <span style={{ padding: "3px 8px", borderRadius: "9999px", border: "1px solid #cbd5e1", color: "#64748b", fontSize: "12px", fontWeight: 500 }}>Actif</span>}
+                                    </div>
+                                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                                      <button type="button" onClick={() => { setEditingCategory(cat); setEditCategoryName(cat.name); setEditCategoryTypeCode(cat.type_code); setShowEditCategoryModal(true); }} style={{ padding: "4px", background: "transparent", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }} title="Modifier"><Pencil size={18} color="#64748b" /></button>
+                                      <button type="button" style={{ padding: "4px", background: "transparent", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }} title="Supprimer"><Trash2 size={18} color="rgb(239, 68, 68)" /></button>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                  {categoriesTypes.length === 0 && !loadingCategories && <div style={{ textAlign: "center", padding: "40px", color: "#64748b", fontSize: "14px" }}>Aucun type de ticket. Ajoutez des types dans la section Types.</div>}
+                </div>
+              )}
+              {showAddCategoryModal && (
+                <div onClick={() => setShowAddCategoryModal(false)} style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "20px" }}>
+                  <div onClick={(e) => e.stopPropagation()} style={{ background: "white", borderRadius: "12px", width: "100%", maxWidth: "480px", boxShadow: "0 4px 20px rgba(0,0,0,0.2)", padding: "24px", position: "relative", maxHeight: "90vh", overflowY: "auto" }}>
+                    <button onClick={() => setShowAddCategoryModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "transparent", border: "none", cursor: "pointer", padding: "4px" }}><X size={20} /></button>
+                    <h2 style={{ marginBottom: "24px", fontSize: "18px", fontWeight: 600, color: "#111827" }}>Nouvelle catégorie</h2>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                      <div>
+                        <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: 500, color: "#111827" }}>Nom de la catégorie</label>
+                        <input type="text" value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)} placeholder="ex: Périphériques" style={{ width: "100%", padding: "12px 16px", border: "1px solid #e5e7eb", borderRadius: "8px", fontSize: "14px", backgroundColor: "white", color: "#111827", boxSizing: "border-box" }} />
+                      </div>
+                      <div>
+                        <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: 500, color: "#111827" }}>Type de ticket</label>
+                        <select value={newCategoryTypeCode} onChange={(e) => setNewCategoryTypeCode(e.target.value)} style={{ width: "100%", padding: "12px 16px", border: "1px solid #e5e7eb", borderRadius: "8px", fontSize: "14px", backgroundColor: "white", color: "#111827", boxSizing: "border-box", cursor: "pointer" }}>
+                          {categoriesTypes.map((t) => <option key={t.id} value={t.code}>{t.label}</option>)}
+                        </select>
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "24px" }}>
+                        <button type="button" onClick={() => setShowAddCategoryModal(false)} style={{ padding: "10px 20px", background: "white", color: "#111827", border: "1px solid #e5e7eb", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 500 }}>Annuler</button>
+                        <button type="button" onClick={handleAddCategory} style={{ padding: "10px 20px", background: "hsl(25, 95%, 53%)", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 600 }}>Ajouter</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {showEditCategoryModal && editingCategory && (
+                <div onClick={() => { setShowEditCategoryModal(false); setEditingCategory(null); }} style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "20px" }}>
+                  <div onClick={(e) => e.stopPropagation()} style={{ background: "white", borderRadius: "12px", width: "100%", maxWidth: "480px", boxShadow: "0 4px 20px rgba(0,0,0,0.2)", padding: "24px", position: "relative", maxHeight: "90vh", overflowY: "auto" }}>
+                    <button onClick={() => { setShowEditCategoryModal(false); setEditingCategory(null); }} style={{ position: "absolute", top: "16px", right: "16px", background: "transparent", border: "none", cursor: "pointer", padding: "4px" }}><X size={20} /></button>
+                    <h2 style={{ marginBottom: "24px", fontSize: "18px", fontWeight: 600, color: "#111827" }}>Modifier la catégorie</h2>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                      <div>
+                        <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: 500, color: "#111827" }}>Nom de la catégorie</label>
+                        <input type="text" value={editCategoryName} onChange={(e) => setEditCategoryName(e.target.value)} style={{ width: "100%", padding: "12px 16px", border: "1px solid #e5e7eb", borderRadius: "8px", fontSize: "14px", backgroundColor: "white", color: "#111827", boxSizing: "border-box" }} />
+                      </div>
+                      <div>
+                        <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: 500, color: "#111827" }}>Type de ticket</label>
+                        <select value={editCategoryTypeCode} onChange={(e) => setEditCategoryTypeCode(e.target.value)} style={{ width: "100%", padding: "12px 16px", border: "1px solid #e5e7eb", borderRadius: "8px", fontSize: "14px", backgroundColor: "white", color: "#111827", boxSizing: "border-box", cursor: "pointer" }}>
+                          {categoriesTypes.map((t) => <option key={t.id} value={t.code}>{t.label}</option>)}
+                        </select>
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "24px" }}>
+                        <button type="button" onClick={() => { setShowEditCategoryModal(false); setEditingCategory(null); }} style={{ padding: "10px 20px", background: "white", color: "#111827", border: "1px solid #e5e7eb", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 500 }}>Annuler</button>
+                        <button type="button" onClick={handleUpdateCategory} style={{ padding: "10px 20px", background: "hsl(25, 95%, 53%)", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 600 }}>Modifier</button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
