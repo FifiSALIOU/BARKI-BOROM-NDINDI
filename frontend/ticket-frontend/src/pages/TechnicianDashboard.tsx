@@ -1830,8 +1830,8 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                     borderRadius: "4px",
                     fontSize: "12px",
                     fontWeight: "500",
-                    background: ticketDetails.status === "en_attente_analyse" ? "rgba(13, 173, 219, 0.1)" : ticketDetails.status === "assigne_technicien" ? "rgba(255, 122, 27, 0.1)" : ticketDetails.status === "en_cours" ? "rgba(15, 31, 61, 0.1)" : ticketDetails.status === "resolu" || ticketDetails.status === "retraite" ? "rgba(47, 158, 68, 0.1)" : ticketDetails.status === "rejete" ? "#fee2e2" : ticketDetails.status === "cloture" ? "#e5e7eb" : "#9e9e9e",
-                    color: ticketDetails.status === "en_attente_analyse" ? "#0DADDB" : ticketDetails.status === "assigne_technicien" ? "#FF7A1B" : ticketDetails.status === "en_cours" ? "#0F1F3D" : ticketDetails.status === "resolu" || ticketDetails.status === "retraite" ? "#2F9E44" : ticketDetails.status === "rejete" ? "#991b1b" : ticketDetails.status === "cloture" ? "#6B7280" : "white"
+                    background: ticketDetails.status === "en_attente_analyse" ? "rgba(13, 173, 219, 0.1)" : ticketDetails.status === "assigne_technicien" ? "rgba(255, 122, 27, 0.1)" : ticketDetails.status === "en_cours" ? "rgba(15, 31, 61, 0.1)" : ticketDetails.status === "retraite" ? "#EDE7F6" : ticketDetails.status === "resolu" ? "rgba(47, 158, 68, 0.1)" : ticketDetails.status === "rejete" ? "#fee2e2" : ticketDetails.status === "cloture" ? "#e5e7eb" : "#9e9e9e",
+                    color: ticketDetails.status === "en_attente_analyse" ? "#0DADDB" : ticketDetails.status === "assigne_technicien" ? "#FF7A1B" : ticketDetails.status === "en_cours" ? "#0F1F3D" : ticketDetails.status === "retraite" ? "#4A148C" : ticketDetails.status === "resolu" ? "#2F9E44" : ticketDetails.status === "rejete" ? "#991b1b" : ticketDetails.status === "cloture" ? "#6B7280" : "white"
                   }}>
                     {getStatusLabel(ticketDetails.status)}
                   </span>
@@ -3779,10 +3779,9 @@ function TechnicianDashboard({ token }: TechnicianDashboardProps) {
                                          "#0DADDB";
 
                       // Déterminer le statut pour l'affichage (résolu, retraité ou clôturé)
-                      const isResolvedOrRetraite = t.status === "resolu" || t.status === "retraite";
                       const statusLabel = t.status === "retraite" ? "Retraité" : (t.status === "resolu" ? "Résolu" : "Clôturé");
-                      const statusBg = isResolvedOrRetraite ? "rgba(47, 158, 68, 0.1)" : "#e5e7eb";
-                      const statusColor = isResolvedOrRetraite ? "#2F9E44" : "#374151";
+                      const statusBg = t.status === "retraite" ? "#EDE7F6" : t.status === "resolu" ? "rgba(47, 158, 68, 0.1)" : "#e5e7eb";
+                      const statusColor = t.status === "retraite" ? "#4A148C" : t.status === "resolu" ? "#2F9E44" : "#374151";
 
                       return (
                         <div

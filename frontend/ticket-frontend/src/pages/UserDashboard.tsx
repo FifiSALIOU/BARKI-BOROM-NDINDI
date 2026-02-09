@@ -1964,8 +1964,8 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                     borderRadius: "4px",
                     fontSize: "12px",
                     fontWeight: "500",
-                    background: ticketDetails.status === "en_attente_analyse" ? "rgba(13, 173, 219, 0.1)" : ticketDetails.status === "assigne_technicien" ? "rgba(255, 122, 27, 0.1)" : ticketDetails.status === "en_cours" ? "rgba(15, 31, 61, 0.1)" : (ticketDetails.status === "resolu" || ticketDetails.status === "retraite") ? "rgba(47, 158, 68, 0.1)" : ticketDetails.status === "rejete" ? "#fee2e2" : ticketDetails.status === "cloture" ? "#E5E7EB" : "#f3f4f6",
-                    color: ticketDetails.status === "en_attente_analyse" ? "#0DADDB" : ticketDetails.status === "assigne_technicien" ? "#FF7A1B" : ticketDetails.status === "en_cours" ? "#0F1F3D" : (ticketDetails.status === "resolu" || ticketDetails.status === "retraite") ? "#2F9E44" : ticketDetails.status === "rejete" ? "#991b1b" : ticketDetails.status === "cloture" ? "#374151" : "#6b7280"
+                    background: ticketDetails.status === "en_attente_analyse" ? "rgba(13, 173, 219, 0.1)" : ticketDetails.status === "assigne_technicien" ? "rgba(255, 122, 27, 0.1)" : ticketDetails.status === "en_cours" ? "rgba(15, 31, 61, 0.1)" : ticketDetails.status === "retraite" ? "#EDE7F6" : ticketDetails.status === "resolu" ? "rgba(47, 158, 68, 0.1)" : ticketDetails.status === "rejete" ? "#fee2e2" : ticketDetails.status === "cloture" ? "#E5E7EB" : "#f3f4f6",
+                    color: ticketDetails.status === "en_attente_analyse" ? "#0DADDB" : ticketDetails.status === "assigne_technicien" ? "#FF7A1B" : ticketDetails.status === "en_cours" ? "#0F1F3D" : ticketDetails.status === "retraite" ? "#4A148C" : ticketDetails.status === "resolu" ? "#2F9E44" : ticketDetails.status === "rejete" ? "#991b1b" : ticketDetails.status === "cloture" ? "#374151" : "#6b7280"
                   }}>
                     {getStatusLabel(ticketDetails.status)}
                   </span>
@@ -2741,8 +2741,8 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                             borderRadius: "12px",
                             fontSize: "12px",
                             fontWeight: "500",
-                            background: t.status === "en_attente_analyse" ? "rgba(13, 173, 219, 0.1)" : t.status === "assigne_technicien" ? "rgba(255, 122, 27, 0.1)" : t.status === "en_cours" ? "rgba(15, 31, 61, 0.1)" : (t.status === "resolu" || t.status === "retraite") ? "rgba(47, 158, 68, 0.1)" : t.status === "rejete" ? "#fee2e2" : "#e5e7eb",
-                            color: t.status === "en_attente_analyse" ? "#0DADDB" : t.status === "assigne_technicien" ? "#FF7A1B" : t.status === "en_cours" ? "#0F1F3D" : (t.status === "resolu" || t.status === "retraite") ? "#2F9E44" : t.status === "rejete" ? "#991b1b" : "#374151",
+                            background: t.status === "en_attente_analyse" ? "rgba(13, 173, 219, 0.1)" : t.status === "assigne_technicien" ? "rgba(255, 122, 27, 0.1)" : t.status === "en_cours" ? "rgba(15, 31, 61, 0.1)" : t.status === "retraite" ? "#EDE7F6" : t.status === "resolu" ? "rgba(47, 158, 68, 0.1)" : t.status === "rejete" ? "#fee2e2" : "#e5e7eb",
+                            color: t.status === "en_attente_analyse" ? "#0DADDB" : t.status === "assigne_technicien" ? "#FF7A1B" : t.status === "en_cours" ? "#0F1F3D" : t.status === "retraite" ? "#4A148C" : t.status === "resolu" ? "#2F9E44" : t.status === "rejete" ? "#991b1b" : "#374151",
                             display: "inline-flex",
                             alignItems: "center",
                             gap: "6px"
@@ -3116,8 +3116,8 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                               borderRadius: "20px",
                               fontSize: t.status === "en_cours" ? "12px" : "10px",
                               fontWeight: "500",
-                        background: t.status === "en_attente_analyse" ? "rgba(13, 173, 219, 0.1)" : t.status === "assigne_technicien" ? "rgba(255, 122, 27, 0.1)" : t.status === "en_cours" ? "rgba(15, 31, 61, 0.1)" : (t.status === "resolu" || t.status === "retraite") ? "rgba(47, 158, 68, 0.1)" : t.status === "rejete" ? "#fee2e2" : t.status === "cloture" ? "#e5e7eb" : "#e5e7eb",
-                        color: t.status === "en_attente_analyse" ? "#0DADDB" : t.status === "assigne_technicien" ? "#FF7A1B" : t.status === "en_cours" ? "#0F1F3D" : (t.status === "resolu" || t.status === "retraite") ? "#2F9E44" : t.status === "rejete" ? "#991b1b" : t.status === "cloture" ? "#374151" : "#374151",
+                        background: t.status === "en_attente_analyse" ? "rgba(13, 173, 219, 0.1)" : t.status === "assigne_technicien" ? "rgba(255, 122, 27, 0.1)" : t.status === "en_cours" ? "rgba(15, 31, 61, 0.1)" : t.status === "retraite" ? "#EDE7F6" : t.status === "resolu" ? "rgba(47, 158, 68, 0.1)" : t.status === "rejete" ? "#fee2e2" : t.status === "cloture" ? "#e5e7eb" : "#e5e7eb",
+                        color: t.status === "en_attente_analyse" ? "#0DADDB" : t.status === "assigne_technicien" ? "#FF7A1B" : t.status === "en_cours" ? "#0F1F3D" : t.status === "retraite" ? "#4A148C" : t.status === "resolu" ? "#2F9E44" : t.status === "rejete" ? "#991b1b" : t.status === "cloture" ? "#374151" : "#374151",
                         whiteSpace: "nowrap",
                       }}>
                         {t.status === "en_attente_analyse" ? "En attente d'assignation" :
@@ -3719,8 +3719,8 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
                         borderRadius: "4px",
                         fontSize: "12px",
                         fontWeight: "500",
-                        background: selectedNotificationTicketDetails.status === "en_attente_analyse" ? "rgba(13, 173, 219, 0.1)" : selectedNotificationTicketDetails.status === "assigne_technicien" ? "rgba(255, 122, 27, 0.1)" : selectedNotificationTicketDetails.status === "en_cours" ? "rgba(15, 31, 61, 0.1)" : (selectedNotificationTicketDetails.status === "resolu" || selectedNotificationTicketDetails.status === "retraite") ? "rgba(47, 158, 68, 0.1)" : selectedNotificationTicketDetails.status === "rejete" ? "#fee2e2" : selectedNotificationTicketDetails.status === "cloture" ? "#E5E7EB" : "#f3f4f6",
-                        color: selectedNotificationTicketDetails.status === "en_attente_analyse" ? "#0DADDB" : selectedNotificationTicketDetails.status === "assigne_technicien" ? "#FF7A1B" : selectedNotificationTicketDetails.status === "en_cours" ? "#0F1F3D" : (selectedNotificationTicketDetails.status === "resolu" || selectedNotificationTicketDetails.status === "retraite") ? "#2F9E44" : selectedNotificationTicketDetails.status === "rejete" ? "#991b1b" : selectedNotificationTicketDetails.status === "cloture" ? "#374151" : "#6b7280"
+                        background: selectedNotificationTicketDetails.status === "en_attente_analyse" ? "rgba(13, 173, 219, 0.1)" : selectedNotificationTicketDetails.status === "assigne_technicien" ? "rgba(255, 122, 27, 0.1)" : selectedNotificationTicketDetails.status === "en_cours" ? "rgba(15, 31, 61, 0.1)" : selectedNotificationTicketDetails.status === "retraite" ? "#EDE7F6" : selectedNotificationTicketDetails.status === "resolu" ? "rgba(47, 158, 68, 0.1)" : selectedNotificationTicketDetails.status === "rejete" ? "#fee2e2" : selectedNotificationTicketDetails.status === "cloture" ? "#E5E7EB" : "#f3f4f6",
+                        color: selectedNotificationTicketDetails.status === "en_attente_analyse" ? "#0DADDB" : selectedNotificationTicketDetails.status === "assigne_technicien" ? "#FF7A1B" : selectedNotificationTicketDetails.status === "en_cours" ? "#0F1F3D" : selectedNotificationTicketDetails.status === "retraite" ? "#4A148C" : selectedNotificationTicketDetails.status === "resolu" ? "#2F9E44" : selectedNotificationTicketDetails.status === "rejete" ? "#991b1b" : selectedNotificationTicketDetails.status === "cloture" ? "#374151" : "#6b7280"
                       }}>
                         {getStatusLabel(selectedNotificationTicketDetails.status)}
                       </span>
