@@ -649,9 +649,11 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
       status.includes("valide") ||
       status.includes("validé") ||
       status.includes("cloture") ||
-      status.includes("clôture")
+      status.includes("clôture") ||
+      status.includes("retraite") ||
+      status.includes("retraité")
     ) {
-      // Résolution / validation
+      // Résolution / validation / retraite : même icône "Résolu" (coche verte)
       Icon = CheckCircle2;
       iconBg = "#ECFDF3";
       iconBorder = "#BBF7D0";
@@ -797,6 +799,11 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
         return `Validé par ${entry.user.full_name}`;
       }
       return "Validé par utilisateur";
+    }
+    
+    // Cas spécifique: passage en retraite (ex. en_cours → retraite) : afficher uniquement "Retraité"
+    if (newStatus.includes("retraite") || newStatus.includes("retraité")) {
+      return "Retraité";
     }
     
     // Format par défaut: "ancien → nouveau"
