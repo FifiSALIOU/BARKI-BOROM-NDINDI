@@ -319,6 +319,10 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
     ticketType: "all",
     priority: "all"
   });
+  // Filtres visuels pour les actifs (Adjoint DSI) – n'affectent pas la logique
+  const [assetStatusFilter, setAssetStatusFilter] = useState<string>("all");
+  const [assetTypeFilter, setAssetTypeFilter] = useState<string>("all");
+  const [assetDepartmentFilter, setAssetDepartmentFilter] = useState<string>("all");
   const [showOutputFormat, setShowOutputFormat] = useState<boolean>(false);
   const [outputFormat, setOutputFormat] = useState<string>("");
   const [recentReports, setRecentReports] = useState<any[]>([]);
@@ -6429,6 +6433,89 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     <div style={{ fontSize: "14px", color: "#6b7280", fontWeight: 500 }}>Garanties expirant</div>
                     <div style={{ fontSize: "11px", color: "#9ca3af" }}>dans 30 jours</div>
                   </div>
+                </div>
+              </div>
+
+              {/* Barre de recherche et filtres Actifs (Adjoint DSI) */}
+              <div
+                style={{
+                  marginTop: "24px",
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: "12px",
+                }}
+              >
+                {/* Recherche actifs */}
+                <div
+                  style={{
+                    flex: "1 1 260px",
+                    minWidth: "220px",
+                    position: "relative",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  <Search
+                    size={18}
+                    color="#6b7280"
+                    style={{
+                      position: "absolute",
+                      left: "14px",
+                      pointerEvents: "none",
+                      zIndex: 1,
+                    }}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Rechercher par nom, n° série, marque..."
+                    style={{
+                      width: "100%",
+                      padding: "10px 14px 10px 40px",
+                      borderRadius: "999px",
+                      border: "1px solid rgba(209,213,219,0.8)",
+                      backgroundColor: "#f9fafb",
+                      fontSize: "14px",
+                      outline: "none",
+                    }}
+                  />
+                </div>
+
+                {/* Tous les statuts */}
+                <div style={{ flex: "0 0 190px", minWidth: "170px" }}>
+                  <OrangeSelect
+                    value={assetStatusFilter}
+                    onChange={setAssetStatusFilter}
+                    options={[
+                      { value: "all", label: "Tous les statuts" },
+                      { value: "en_service", label: "En service" },
+                      { value: "en_maintenance", label: "En maintenance" },
+                      { value: "en_panne", label: "En panne" },
+                      { value: "reformes", label: "Réformés" },
+                      { value: "en_stock", label: "En stock" },
+                    ]}
+                  />
+                </div>
+
+                {/* Tous les types */}
+                <div style={{ flex: "0 0 190px", minWidth: "170px" }}>
+                  <OrangeSelect
+                    value={assetTypeFilter}
+                    onChange={setAssetTypeFilter}
+                    options={[
+                      { value: "all", label: "Tous les types" },
+                    ]}
+                  />
+                </div>
+
+                {/* Tous les départements */}
+                <div style={{ flex: "0 0 210px", minWidth: "180px" }}>
+                  <OrangeSelect
+                    value={assetDepartmentFilter}
+                    onChange={setAssetDepartmentFilter}
+                    options={[
+                      { value: "all", label: "Tous les départements" },
+                    ]}
+                  />
                 </div>
               </div>
             </div>
