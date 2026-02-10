@@ -736,6 +736,22 @@ function DSIDashboard({ token }: DSIDashboardProps) {
     fournisseur: "",
     notes: "",
   });
+
+  // KPIs calculés à partir des actifs chargés
+  const totalAssets = assets.length;
+  const inServiceCount = assets.filter((a) => a.statut === "in_service").length;
+  const inMaintenanceCount = assets.filter((a) => a.statut === "en_maintenance").length;
+  const inPanneCount = assets.filter((a) => a.statut === "en_panne").length;
+  const inStockCount = assets.filter((a) => a.statut === "en_stock").length;
+  const reformedCount = assets.filter((a) => a.statut === "reformes").length;
+  const totalValue = assets.reduce((sum, a) => sum + (a.prix_d_achat || 0), 0);
+  const warrantiesExpiringCount = assets.filter((a) => {
+    if (!a.date_de_fin_garantie) return false;
+    const end = new Date(a.date_de_fin_garantie);
+    const now = new Date();
+    const diffDays = Math.round((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    return diffDays >= 0 && diffDays <= 30;
+  }).length;
   
   const location = useLocation();
   const navigate = useNavigate();
@@ -9319,7 +9335,9 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                   <Monitor size={18} color="#4b5563" />
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                  <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>0</div>
+                  <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>
+                    {totalAssets}
+                  </div>
                   <div style={{ fontSize: "14px", color: "#6b7280", fontWeight: 500 }}>Total Actifs</div>
                 </div>
               </div>
@@ -9351,7 +9369,9 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                   <CheckCircle size={18} color="#16a34a" />
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                  <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>0</div>
+                  <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>
+                    {inServiceCount}
+                  </div>
                   <div style={{ fontSize: "14px", color: "#6b7280", fontWeight: 500 }}>En service</div>
                 </div>
               </div>
@@ -9383,7 +9403,9 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                   <Wrench size={18} color="#f97316" />
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                  <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>0</div>
+                  <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>
+                    {inMaintenanceCount}
+                  </div>
                   <div style={{ fontSize: "14px", color: "#6b7280", fontWeight: 500 }}>En maintenance</div>
                 </div>
               </div>
@@ -9415,7 +9437,9 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                   <AlertTriangle size={18} color="#ef4444" />
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                  <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>0</div>
+                  <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>
+                    {inPanneCount}
+                  </div>
                   <div style={{ fontSize: "14px", color: "#6b7280", fontWeight: 500 }}>En panne</div>
                 </div>
               </div>
@@ -9447,7 +9471,9 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                   <Package size={18} color="#2563eb" />
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                  <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>0</div>
+                  <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>
+                    {inStockCount}
+                  </div>
                   <div style={{ fontSize: "14px", color: "#6b7280", fontWeight: 500 }}>En stock</div>
                 </div>
               </div>
@@ -9479,7 +9505,9 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                   <Archive size={18} color="#4b5563" />
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                  <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>0</div>
+                  <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>
+                    {reformedCount}
+                  </div>
                   <div style={{ fontSize: "14px", color: "#6b7280", fontWeight: 500 }}>Réformés</div>
                 </div>
               </div>
@@ -9511,7 +9539,9 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                   <Banknote size={18} color="#16a34a" />
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                  <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>0 FCFA</div>
+                  <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>
+                    {`${totalValue.toLocaleString("fr-FR")} FCFA`}
+                  </div>
                   <div style={{ fontSize: "14px", color: "#6b7280", fontWeight: 500 }}>Valeur totale</div>
                 </div>
               </div>
@@ -9542,7 +9572,9 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                   <Clock size={18} color="#f97316" />
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                  <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>0</div>
+                  <div style={{ fontSize: "22px", fontWeight: 700, color: "#111827" }}>
+                    {warrantiesExpiringCount}
+                  </div>
                   <div style={{ fontSize: "14px", color: "#6b7280", fontWeight: 500 }}>Garanties expirant</div>
                   <div style={{ fontSize: "11px", color: "#9ca3af" }}>dans 30 jours</div>
                 </div>
