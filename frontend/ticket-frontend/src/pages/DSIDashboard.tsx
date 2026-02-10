@@ -19142,8 +19142,9 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     type="button"
                     onClick={() => setShowAssetModal(false)}
                     style={{
-                      padding: "8px 16px",
-                      borderRadius: "999px",
+                    padding: "8px 16px",
+                    // Forme rectangulaire avec coins légèrement arrondis
+                    borderRadius: "6px",
                       border: "1px solid #e5e7eb",
                       backgroundColor: "#ffffff",
                       fontSize: "14px",
@@ -19255,7 +19256,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     }}
                     style={{
                       padding: "8px 18px",
-                      borderRadius: "999px",
+                      // Forme rectangulaire avec coins légèrement arrondis
+                      borderRadius: "6px",
                       border: "none",
                       backgroundColor: "#111827",
                       fontSize: "14px",
