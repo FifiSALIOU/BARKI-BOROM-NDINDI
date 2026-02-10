@@ -256,6 +256,37 @@ def create_asset(
     return schemas.AssetRead(**row)
 
 
+@router.get(
+    "/asset-types",
+    response_model=List[schemas.AssetTypeConfig],
+    summary="Lister les types d'actifs (configuration)",
+)
+def list_asset_types(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+) -> List[schemas.AssetTypeConfig]:
+    """
+    Retourne la liste des types d'actifs actifs.
+
+    - Lecture seule.
+    - N'altère aucune donnée existante.
+    """
+
+    _ensure_can_view_assets(current_user)
+
+    query = text(
+        """
+        SELECT id, code, label, is_active
+        FROM asset_types
+        WHERE is_active = TRUE
+        ORDER BY label ASC
+        """
+    )
+
+    result = db.execute(query).mappings().all()
+    return [schemas.AssetTypeConfig(**row) for row in result]
+
+
 @router.put(
     "/assets/{asset_id}",
     response_model=schemas.AssetRead,

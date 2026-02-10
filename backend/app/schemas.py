@@ -312,3 +312,15 @@ class AssetRead(AssetBase):
 
     class Config:
         from_attributes = True
+
+
+class AssetTypeConfig(BaseModel):
+    """Schéma de lecture pour un type d'actif (table asset_types)."""
+
+    id: int
+    code: str
+    label: str
+    is_active: bool
+
+    class Config:
+        from_attributes = True

@@ -200,6 +200,13 @@ interface Asset {
   created_by?: number | null;
 }
 
+interface AssetTypeConfig {
+  id: number;
+  code: string;
+  label: string;
+  is_active: boolean;
+}
+
 interface AssetFormState {
   nom: string;
   type: string;
@@ -279,6 +286,18 @@ const assetTypeLabels: Record<string, string> = {
   mouse: "Souris",
   other: "Autre",
 };
+
+// Fallback local si la base ne renvoie aucun type d'actif
+const defaultAssetTypeOptions: { code: string; label: string }[] = [
+  { code: "desktop", label: "Ordinateur fixe" },
+  { code: "laptop", label: "Ordinateur portable" },
+  { code: "printer", label: "Imprimante" },
+  { code: "monitor", label: "Écran" },
+  { code: "mobile", label: "Mobile" },
+  { code: "tablet", label: "Tablette" },
+  { code: "phone", label: "Téléphone" },
+  { code: "network", label: "Équipement réseau" },
+];
 
 // Composant Label personnalisé pour les donut charts avec labels externes et lignes de connexion
 const CustomLabel = ({ cx, cy, midAngle, outerRadius, percent, name, fill, value }: any) => {
@@ -737,6 +756,8 @@ function DSIDashboard({ token }: DSIDashboardProps) {
     notes: "",
   });
 
+  const [assetTypes, setAssetTypes] = useState<AssetTypeConfig[]>([]);
+
   // KPIs calculés à partir des actifs chargés
   const totalAssets = assets.length;
   const inServiceCount = assets.filter((a) => a.statut === "in_service").length;
@@ -752,6 +773,10 @@ function DSIDashboard({ token }: DSIDashboardProps) {
     const diffDays = Math.round((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
     return diffDays >= 0 && diffDays <= 30;
   }).length;
+
+  const assetTypeOptions = (assetTypes && assetTypes.length > 0
+    ? assetTypes.map((t) => ({ code: t.code, label: t.label }))
+    : defaultAssetTypeOptions);
   
   const location = useLocation();
   const navigate = useNavigate();
@@ -2170,6 +2195,14 @@ function DSIDashboard({ token }: DSIDashboardProps) {
     }
   }, [activeSection]);
 
+  // Charger les types d'actifs depuis la base (Admin / DSI / Adjoint) pour les filtres et le formulaire
+  useEffect(() => {
+    if (!token) return;
+    if (!(userRole === "Admin" || userRole === "DSI" || userRole === "Adjoint DSI")) return;
+
+    void loadAssetTypes();
+  }, [token, userRole]);
+
   // Charger les types de tickets depuis la base de données (Admin et DSI)
   useEffect(() => {
     if (activeSection === "types" && (userRole === "Admin" || userRole === "DSI") && token) {
@@ -2418,6 +2451,30 @@ function DSIDashboard({ token }: DSIDashboardProps) {
       setAssetError("Erreur lors du chargement des actifs.");
     } finally {
       setIsLoadingAssets(false);
+    }
+  }
+
+  async function loadAssetTypes(): Promise<void> {
+    if (!token || token.trim() === "") {
+      return;
+    }
+
+    try {
+      const res = await fetch("http://localhost:8000/asset-types", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) {
+        console.error("Erreur HTTP chargement types d'actifs:", res.status);
+        return;
+      }
+
+      const data: AssetTypeConfig[] = await res.json();
+      setAssetTypes(data || []);
+    } catch (err) {
+      console.error("Erreur lors du chargement des types d'actifs:", err);
     }
   }
 
