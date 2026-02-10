@@ -9984,18 +9984,22 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                       </div>
                       <div
                         style={{
-                          padding: "4px 8px",
+                          padding: "4px 12px",
                           borderRadius: "999px",
                           border: `1px solid ${statusConfig.badgeBorder}`,
                           backgroundColor: statusConfig.badgeBg,
                           fontSize: "11px",
                           fontWeight: 500,
                           color: statusConfig.badgeText,
+                          // Garder le texte sur une seule ligne comme En panne / En stock
                           whiteSpace: "nowrap",
+                          // Empêcher le badge de se faire compresser et légèrement l'éloigner du bord droit
+                          flexShrink: 0,
+                          marginRight: "4px",
+                          textAlign: "center",
                         }}
                       >
-                        {assetStatusLabels[asset.statut] ||
-                          asset.statut}
+                        {assetStatusLabels[asset.statut] || asset.statut}
                       </div>
                     </div>
 
