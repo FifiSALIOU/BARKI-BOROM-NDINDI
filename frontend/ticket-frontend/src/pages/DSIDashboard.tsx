@@ -7200,11 +7200,6 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                             <span style={{ fontSize: "12px", color: "#6b7280" }}>
                               {new Date(c.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })} à {new Date(c.created_at).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
                             </span>
-                            {c.type === "technique" && (
-                              <span style={{ fontSize: "11px", color: "hsl(25, 95%, 53%)" }}>
-                                (interne)
-                              </span>
-                            )}
                           </div>
                         </div>
                         <div style={{ fontSize: "14px", color: "#111827", marginLeft: "42px" }}>{c.content}</div>
