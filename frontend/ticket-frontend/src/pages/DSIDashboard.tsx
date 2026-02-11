@@ -7309,7 +7309,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     </button>
                   )}
 
-                  {/* Bouton Rouvrir (si relancé) */}
+                  {/* Bouton Rouvrir (si relancé) - style spécifique pour DSI / Admin */}
                   {ticketDetails.status === "rejete" && (
                     <button
                       onClick={() => {
@@ -7318,8 +7318,12 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                       disabled={loading}
                       style={{
                         padding: "10px 20px",
-                        backgroundColor: loading ? "#d1d5db" : "#f3f4f6",
-                        color: "black",
+                        backgroundColor: loading
+                          ? "#d1d5db"
+                          : (userRole === "DSI" || userRole === "Admin")
+                            ? "hsl(25, 95%, 53%)"
+                            : "#f3f4f6",
+                        color: (userRole === "DSI" || userRole === "Admin") ? "white" : "black",
                         border: "none",
                         borderRadius: "6px",
                         cursor: loading ? "not-allowed" : "pointer",
@@ -7331,10 +7335,20 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                         gap: "8px"
                       }}
                       onMouseEnter={(e) => {
-                        if (!loading) e.currentTarget.style.backgroundColor = "#e5e7eb";
+                        if (loading) return;
+                        if (userRole === "DSI" || userRole === "Admin") {
+                          e.currentTarget.style.backgroundColor = "hsl(25, 95%, 48%)";
+                        } else {
+                          e.currentTarget.style.backgroundColor = "#e5e7eb";
+                        }
                       }}
                       onMouseLeave={(e) => {
-                        if (!loading) e.currentTarget.style.backgroundColor = "#f3f4f6";
+                        if (loading) return;
+                        if (userRole === "DSI" || userRole === "Admin") {
+                          e.currentTarget.style.backgroundColor = "hsl(25, 95%, 53%)";
+                        } else {
+                          e.currentTarget.style.backgroundColor = "#f3f4f6";
+                        }
                       }}
                     >
                       Rouvrir
@@ -21715,21 +21729,30 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                 style={{ 
                   width: "100%", 
                   padding: "10px 12px", 
-                  background: "transparent", 
+                  background: (userRole === "DSI" || userRole === "Admin") ? "hsl(25, 95%, 53%)" : "transparent", 
                   border: "none", 
                   textAlign: "left", 
                   cursor: loading ? "not-allowed" : "pointer",
-                  color: "#111827",
+                  color: (userRole === "DSI" || userRole === "Admin") ? "white" : "#111827",
                   fontSize: "14px",
                   display: "block",
                   whiteSpace: "nowrap",
                   opacity: loading ? 0.6 : 1
                 }}
                 onMouseEnter={(e) => {
-                  if (!loading) e.currentTarget.style.backgroundColor = "#f3f4f6";
+                  if (loading) return;
+                  if (userRole === "DSI" || userRole === "Admin") {
+                    e.currentTarget.style.backgroundColor = "hsl(25, 95%, 48%)";
+                  } else {
+                    e.currentTarget.style.backgroundColor = "#f3f4f6";
+                  }
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "transparent";
+                  if (userRole === "DSI" || userRole === "Admin") {
+                    e.currentTarget.style.backgroundColor = "hsl(25, 95%, 53%)";
+                  } else {
+                    e.currentTarget.style.backgroundColor = "transparent";
+                  }
                 }}
               >
                 Rouvrir
