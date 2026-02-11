@@ -1132,12 +1132,14 @@ def validate_ticket_resolution(
             db.add(notification)
             technician = db.query(models.User).filter(models.User.id == ticket.technician_id).first()
             if technician and technician.email and technician.email.strip():
-                email_service.send_ticket_rejected_notification(
+                # Envoyer l'email de rejet en arrière-plan pour ne pas bloquer la réponse API
+                background_tasks.add_task(
+                    email_service.send_ticket_rejected_notification,
                     ticket_number=ticket.number,
                     ticket_title=ticket.title,
                     technician_email=technician.email,
                     technician_name=technician.full_name,
-                    rejection_reason=validation.rejection_reason
+                    rejection_reason=validation.rejection_reason,
                 )
         
         # Notifier DSI, Adjoints DSI et Secrétaires DSI

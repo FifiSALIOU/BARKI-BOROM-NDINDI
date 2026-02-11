@@ -1112,6 +1112,10 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
       });
 
       if (res.ok) {
+        // Afficher tout de suite le message de succès (même comportement pour Valider et Relancer)
+        alert(validated ? "Ticket validé et clôturé avec succès !" : "Ticket relancé. Le technicien a été notifié avec le motif.");
+
+        // Puis recharger les données comme avant (même fonctionnement que précédemment)
         await loadTickets();
         await loadNotifications();
         await loadUnreadCount();
@@ -1121,7 +1125,6 @@ function UserDashboard({ token: tokenProp }: UserDashboardProps) {
         setValidationTicket(null);
         setRejectionReason("");
         setShowRejectionForm(false);
-        alert(validated ? "Ticket validé et clôturé avec succès !" : "Ticket relancé. Le technicien a été notifié avec le motif.");
       } else {
         const error = await res.json();
         alert(`Erreur: ${error.detail || "Impossible de valider le ticket"}`);
