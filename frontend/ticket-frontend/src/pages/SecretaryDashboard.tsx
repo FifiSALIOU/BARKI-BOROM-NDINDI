@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useSearchParams, useLocation, useNavigate } from "react-router-dom";
-import { Clock3, Users, CheckCircle2, CheckCircle, ChevronRight, ChevronLeft, ChevronDown, LayoutDashboard, Bell, Search, Clock, Monitor, Wrench, Forward, AlertTriangle, BarChart3, TrendingUp, Box, UserPlus, FileText, UserCheck, RefreshCcw, Filter, Calendar, Layers, Building2, User, FileSpreadsheet, MessageCircle, Flag, Share2, Package, Trash2, DollarSign, Ticket as TicketIcon, Archive, Banknote, Download, Plus, Pencil, X, FolderTree, Tag, HardDrive, Laptop, Printer, Keyboard, Mouse, Phone, Tablet, Network, QrCode, MapPin, Eye, Lock, Send } from "lucide-react";
+import { Clock3, Users, CheckCircle2, CheckCircle, ChevronRight, ChevronLeft, ChevronDown, LayoutDashboard, Bell, Search, Clock, Monitor, Wrench, Forward, AlertTriangle, BarChart3, TrendingUp, Box, UserPlus, FileText, UserCheck, RefreshCcw, Filter, Calendar, Layers, Building2, User, FileSpreadsheet, MessageCircle, Flag, Share2, Package, Trash2, DollarSign, Ticket as TicketIcon, Archive, Banknote, Download, Plus, PlusCircle, Pencil, X, FolderTree, Tag, HardDrive, Laptop, Printer, Keyboard, Mouse, Phone, Tablet, Network, QrCode, MapPin, Eye, Lock, Send } from "lucide-react";
 import helpdeskLogo from "../assets/helpdesk-logo.png";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -493,6 +493,13 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
   const [openActionsMenuFor, setOpenActionsMenuFor] = useState<string | null>(null);
   const [ticketSearchQuery, setTicketSearchQuery] = useState<string>("");
   const [delegatedTicketsByDSI, setDelegatedTicketsByDSI] = useState<Set<string>>(new Set());
+  // États pour la création de ticket (Adjoint DSI)
+  const [showCreateTicketModal, setShowCreateTicketModal] = useState<boolean>(false);
+  const [newTicketTitle, setNewTicketTitle] = useState<string>("");
+  const [newTicketDescription, setNewTicketDescription] = useState<string>("");
+  const [newTicketType, setNewTicketType] = useState<string>("materiel");
+  const [newTicketCategory, setNewTicketCategory] = useState<string>("");
+  const [createTicketError, setCreateTicketError] = useState<string | null>(null);
   // États pour la section Types (Adjoint DSI) – même contenu que Admin
   const [ticketTypes, setTicketTypes] = useState<Array<{
     id: number;
@@ -1287,6 +1294,66 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
     }
   }
 
+  async function handleCreateTicket(e: React.FormEvent) {
+    e.preventDefault();
+    setCreateTicketError(null);
+    setLoading(true);
+    
+    if (!token || token.trim() === "") {
+      setCreateTicketError("Erreur d'authentification : veuillez vous reconnecter");
+      setLoading(false);
+      return;
+    }
+    
+    try {
+      const requestBody = {
+        title: newTicketTitle.trim(),
+        description: newTicketDescription.trim(),
+        type: newTicketType.toLowerCase(),
+        category: newTicketCategory.trim() || undefined,
+      };
+      
+      const res = await fetch("http://localhost:8000/tickets/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(requestBody),
+      });
+      
+      if (!res.ok) {
+        let errorMessage = `Erreur ${res.status}: ${res.statusText}`;
+        try {
+          const errorData = await res.json();
+          errorMessage = errorData.detail || errorMessage;
+        } catch {
+          const textError = await res.text();
+          console.error("Erreur (texte):", textError);
+        }
+        throw new Error(errorMessage);
+      }
+      
+      const newTicket = await res.json();
+      console.log("Ticket créé avec succès:", newTicket);
+      setNewTicketTitle("");
+      setNewTicketDescription("");
+      setNewTicketType("materiel");
+      setNewTicketCategory("");
+      setShowCreateTicketModal(false);
+      navigate("/dashboard/adjoint");
+      void loadTickets();
+      void loadNotifications();
+      void loadUnreadCount();
+      alert("Ticket créé avec succès !");
+    } catch (err: any) {
+      console.error("Erreur lors de la création du ticket:", err);
+      setCreateTicketError(err.message || "Une erreur est survenue lors de la création du ticket");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   useEffect(() => {
     async function loadData() {
       try {
@@ -1492,6 +1559,24 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
       } catch (e) { console.error("Erreur chargement catégories (Adjoint DSI):", e); }
     })();
   }, [roleName, location.pathname, token]);
+
+  // Charger types et catégories quand le modal de création de ticket s'ouvre
+  useEffect(() => {
+    if (showCreateTicketModal && roleName === "Adjoint DSI" && token) {
+      (async () => {
+        try {
+          const [typesRes, categoriesRes] = await Promise.all([
+            fetch("http://localhost:8000/ticket-config/types", { headers: { Authorization: `Bearer ${token}` } }),
+            fetch("http://localhost:8000/ticket-config/categories", { headers: { Authorization: `Bearer ${token}` } }),
+          ]);
+          if (typesRes.ok) setTicketTypes((await typesRes.json()) || []);
+          if (categoriesRes.ok) setCategoriesList((await categoriesRes.json()) || []);
+        } catch (e) {
+          console.error("Erreur chargement types/catégories pour création:", e);
+        }
+      })();
+    }
+  }, [showCreateTicketModal, roleName, token]);
 
   // Fermer le Popover Période au clic extérieur (Adjoint DSI)
   useEffect(() => {
@@ -4170,6 +4255,27 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
           </div>
           <div style={{ fontSize: "16px", fontFamily: "'Inter', system-ui, sans-serif", fontWeight: "500" }}>Tableau de Bord</div>
         </div>
+        
+        {roleName === "Adjoint DSI" && (
+        <div 
+          onClick={() => setShowCreateTicketModal(true)}
+          style={{ 
+            display: "flex", 
+            alignItems: "center", 
+            gap: "12px", 
+            padding: "10px", 
+            background: "transparent", 
+            borderRadius: "8px",
+            cursor: "pointer",
+            marginBottom: "8px"
+          }}
+        >
+          <div style={{ width: "20px", height: "20px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <PlusCircle size={20} color="rgba(180, 180, 180, 0.7)" />
+          </div>
+          <div style={{ fontSize: "15px", fontFamily: "'Inter', system-ui, sans-serif", fontWeight: "500", color: "white" }}>Nouveau ticket</div>
+        </div>
+        )}
         
         <div 
           onClick={() => {
@@ -12949,6 +13055,188 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                 {loading ? "Réassignation..." : "Confirmer la réassignation"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de création de ticket (Adjoint DSI) */}
+      {showCreateTicketModal && (
+        <div
+          onClick={() => {
+            setShowCreateTicketModal(false);
+            setNewTicketTitle("");
+            setNewTicketDescription("");
+            setNewTicketType("materiel");
+            setNewTicketCategory("");
+            setCreateTicketError(null);
+          }}
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0, 0, 0, 0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "white",
+              padding: "24px",
+              borderRadius: "12px",
+              width: "90%",
+              maxWidth: "600px",
+              maxHeight: "90vh",
+              overflow: "auto",
+              boxShadow: "0 10px 40px rgba(0,0,0,0.2)",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+              <h2 style={{ margin: "0", fontSize: "22px", fontWeight: "600", color: "#333" }}>
+                Créer un nouveau ticket
+              </h2>
+              <button
+                onClick={() => {
+                  setShowCreateTicketModal(false);
+                  setNewTicketTitle("");
+                  setNewTicketDescription("");
+                  setNewTicketType("materiel");
+                  setNewTicketCategory("");
+                  setCreateTicketError(null);
+                }}
+                style={{ background: "none", border: "none", fontSize: "24px", cursor: "pointer", color: "#999" }}
+              >
+                ×
+              </button>
+            </div>
+            
+            {createTicketError && (
+              <div style={{
+                padding: "12px",
+                marginBottom: "16px",
+                borderRadius: "8px",
+                backgroundColor: "#ffebee",
+                color: "#c62828",
+                border: "1px solid #ef5350"
+              }}>
+                <strong>Erreur :</strong> {createTicketError}
+              </div>
+            )}
+            
+            <form onSubmit={async (e) => { await handleCreateTicket(e); }}>
+              <div style={{ marginBottom: "16px" }}>
+                <label style={{ display: "block", marginBottom: "4px", fontWeight: "500" }}>Titre</label>
+                <input
+                  value={newTicketTitle}
+                  onChange={(e) => setNewTicketTitle(e.target.value)}
+                  required
+                  disabled={loading}
+                  style={{ width: "100%", padding: "10px", border: "1px solid #ddd", borderRadius: "4px" }}
+                />
+              </div>
+              <div style={{ marginBottom: "16px" }}>
+                <label style={{ display: "block", marginBottom: "4px", fontWeight: "500" }}>Description</label>
+                <textarea
+                  value={newTicketDescription}
+                  onChange={(e) => setNewTicketDescription(e.target.value)}
+                  required
+                  disabled={loading}
+                  rows={4}
+                  style={{ width: "100%", padding: "10px", border: "1px solid #ddd", borderRadius: "4px", resize: "vertical" }}
+                />
+              </div>
+              <div style={{ marginBottom: "16px" }}>
+                <label style={{ display: "block", marginBottom: "4px", fontWeight: "500" }}>Type</label>
+                <select
+                  value={newTicketType}
+                  onChange={(e) => {
+                    setNewTicketType(e.target.value);
+                    setNewTicketCategory("");
+                  }}
+                  style={{ width: "100%", padding: "10px", border: "1px solid #ddd", borderRadius: "4px" }}
+                >
+                  {ticketTypes.map((t) => (
+                    <option key={t.id} value={t.code}>
+                      {t.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div style={{ marginBottom: "16px" }}>
+                <label style={{ display: "block", marginBottom: "4px", fontWeight: "500" }}>Catégorie</label>
+                <select
+                  value={newTicketCategory}
+                  onChange={(e) => setNewTicketCategory(e.target.value)}
+                  disabled={loading}
+                  style={{ width: "100%", padding: "10px", border: "1px solid #ddd", borderRadius: "4px" }}
+                >
+                  <option value="">Sélectionner une catégorie...</option>
+                  {categoriesList
+                    .filter((c) => c.type_code === newTicketType)
+                    .map((cat) => (
+                      <option key={cat.id} value={cat.name}>
+                        {cat.name}
+                      </option>
+                    ))}
+                </select>
+              </div>
+              
+              <div style={{ display: "flex", gap: "12px", marginTop: "24px" }}>
+                <button 
+                  type="submit" 
+                  disabled={loading || !newTicketTitle.trim() || !newTicketDescription.trim()} 
+                  style={{
+                    flex: 1,
+                    padding: "12px 20px",
+                    backgroundColor: "#FB7E06",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: "500",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "8px",
+                    transition: "opacity 0.2s ease",
+                    opacity: loading || !newTicketTitle.trim() || !newTicketDescription.trim() ? 0.5 : 1
+                  }}
+                >
+                  <Send size={16} style={{ color: "white" }} />
+                  {loading ? "Création en cours..." : "Soumettre le ticket"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCreateTicketModal(false);
+                    setNewTicketTitle("");
+                    setNewTicketDescription("");
+                    setNewTicketType("materiel");
+                    setNewTicketCategory("");
+                    setCreateTicketError(null);
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: "12px 20px",
+                    background: "#f5f5f5",
+                    color: "#333",
+                    border: "1px solid #ddd",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: "500"
+                  }}
+                >
+                  Annuler
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

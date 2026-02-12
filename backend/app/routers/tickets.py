@@ -27,7 +27,7 @@ def create_ticket(
     ticket_in: schemas.TicketCreate,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(require_role("Utilisateur")),
+    current_user: models.User = Depends(require_role("Utilisateur", "Adjoint DSI")),
 ):
     """Créer un nouveau ticket"""
     # Générer le numéro de ticket automatiquement
