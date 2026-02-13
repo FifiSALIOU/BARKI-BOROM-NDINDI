@@ -21293,12 +21293,6 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
 
           {activeSection === "audit-logs" && (
             <div style={{ padding: "24px" }}>
-              <h1 style={{ marginBottom: "24px", fontSize: "28px", fontWeight: "600", color: "#333" }}>
-                Audit et Logs
-              </h1>
-              <p style={{ color: "#666", marginBottom: "24px" }}>
-                Consultation et analyse des logs système et des activités d'audit
-              </p>
               <div style={{ 
                 background: "white", 
                 borderRadius: "8px", 
