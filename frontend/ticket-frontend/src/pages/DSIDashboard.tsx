@@ -7248,6 +7248,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                 ? "Email"
                 : activeSection === "securite"
                 ? "Sécurité"
+                : activeSection === "priorites"
+                ? "Priorités"
                 : "Tableau de bord"}
             </div>
             <div style={{ 
@@ -7289,6 +7291,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                 ? "Configurez les paramètres d'envoi et de réception des emails"
                 : activeSection === "securite"
                 ? "Gérez les mots de passe et les paramètres de sécurité du compte"
+                : activeSection === "priorites"
+                ? "Gérez les niveaux de priorité des tickets"
                 : "Vue d'ensemble de votre activité"}
             </div>
           </div>
