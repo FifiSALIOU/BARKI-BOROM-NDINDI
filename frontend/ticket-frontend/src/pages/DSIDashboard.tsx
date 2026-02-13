@@ -20756,7 +20756,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
           )}
 
           {activeSection === "maintenance" && (
-            <div style={{ padding: "24px" }}>
+            <div style={{ padding: "24px 24px 24px 0" }}>
               {/* En-tête de section volontairement sans titre (design épuré) */}
 
               {/* Onglets internes de la section Maintenance (design type cartes avec icônes) */}
