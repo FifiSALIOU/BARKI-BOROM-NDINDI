@@ -813,7 +813,7 @@ function DSIDashboard({ token }: DSIDashboardProps) {
     if (path === "/dashboard/admin/parametres/securite") return "securite";
     if (path === "/dashboard/admin/parametres/types-de-tickets") return "types-tickets";
     if (path === "/dashboard/admin/parametres/priorites") return "priorites";
-    if (path === "/dashboard/admin/parametres/departements") return "departements";
+    if (path === "/dashboard/admin/departements" || path === "/dashboard/dsi/departements") return "departements";
     // Route générale paramètres
     if (path === "/dashboard/admin/parametres") return "settings";
     if (path === "/dashboard/admin" || path === "/dashboard/dsi") return "dashboard";
@@ -6930,7 +6930,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
         )}
         {/* Agences (déplacé au-dessus de Statistiques) */}
         <div 
-          onClick={() => navigate(`${getRoutePrefix()}/parametres/departements`)}
+          onClick={() => navigate(userRole === "DSI" ? "/dashboard/dsi/departements" : "/dashboard/admin/departements")}
           style={{ 
             display: "flex", 
             alignItems: "center", 
