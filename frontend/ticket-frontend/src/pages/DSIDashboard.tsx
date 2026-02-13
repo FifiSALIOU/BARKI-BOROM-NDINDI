@@ -17641,7 +17641,6 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                          <th style={{ padding: "12px 16px", textAlign: "left", fontWeight: "600", color: "#6b7280", fontSize: "13px" }}>Nom</th>
                          <th style={{ padding: "12px 16px", textAlign: "left", fontWeight: "600", color: "#6b7280", fontSize: "13px" }}>Libellé</th>
                          <th style={{ padding: "12px 16px", textAlign: "left", fontWeight: "600", color: "#6b7280", fontSize: "13px" }}>Couleur</th>
-                         <th style={{ padding: "12px 16px", textAlign: "left", fontWeight: "600", color: "#6b7280", fontSize: "13px" }}>SLA (heures)</th>
                          <th style={{ padding: "12px 16px", textAlign: "center", fontWeight: "600", color: "#6b7280", fontSize: "13px" }}>Actif</th>
                          <th style={{ padding: "12px 16px", textAlign: "center", fontWeight: "600", color: "#6b7280", fontSize: "13px" }}>Actions</th>
                        </tr>
@@ -17650,7 +17649,6 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                        {prioritiesFromDb.filter((p) => p.is_active).map((p) => {
                          const bgHex = p.background_hex || p.color_hex || "#f3f4f6";
                          const textHex = p.color_hex || "#374151";
-                         const slaHours = { 1: 24, 2: 48, 3: 72, 4: 96 }[p.display_order] ?? "—";
                          return (
                            <tr key={p.id} style={{ borderBottom: "1px solid #e5e7eb" }}>
                              <td style={{ padding: "12px 8px", textAlign: "center", verticalAlign: "middle" }}>
@@ -17685,7 +17683,6 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                                  {p.label}
                                </span>
                              </td>
-                             <td style={{ padding: "12px 16px", color: "#9ca3af", fontSize: "14px" }}>{slaHours}</td>
                              <td style={{ padding: "12px 16px", textAlign: "center", verticalAlign: "middle" }}>
                                <button
                                  type="button"
