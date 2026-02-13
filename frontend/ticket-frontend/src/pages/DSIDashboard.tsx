@@ -7257,6 +7257,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                 ? "Statistiques générales"
                 : activeSection === "apparence"
                 ? "Apparence"
+                : activeSection === "email"
+                ? "Email"
                 : "Tableau de bord"}
             </div>
             <div style={{ 
@@ -7294,6 +7296,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                 ? "Vue d'ensemble des tickets et de l'activité du support"
                 : activeSection === "apparence"
                 ? "Personnalisez le thème et l'aspect de l'interface"
+                : activeSection === "email"
+                ? "Configurez les paramètres d'envoi et de réception des emails"
                 : "Vue d'ensemble de votre activité"}
             </div>
           </div>
