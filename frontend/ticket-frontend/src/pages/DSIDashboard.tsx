@@ -20876,22 +20876,22 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                             }}
                           >
                             <span
-                              style={{
-                                width: "20px",
-                                height: "20px",
-                                borderRadius: "9999px",
-                                background: "#eef2ff",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                              }}
-                            >
-                              <Database size={14} strokeWidth={2.4} color="#4f46e5" />
+                            style={{
+                              width: "24px",
+                              height: "24px",
+                              borderRadius: "9999px",
+                              background: "#eef2ff",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <Database size={16} strokeWidth={2.4} color="#4f46e5" />
                             </span>
                             <h3
                               style={{
                                 margin: 0,
-                                fontSize: "15px",
+                              fontSize: "20px",
                                 fontWeight: 600,
                                 color: "#111827",
                               }}
