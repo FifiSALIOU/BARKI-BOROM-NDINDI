@@ -20157,14 +20157,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
           {activeSection === "departements" && (
             <div style={{ padding: "24px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
-                <div>
-                  <h1 style={{ fontSize: "28px", fontWeight: "600", color: "#333", marginBottom: "8px" }}>
-                    Agences
-                  </h1>
-                  <p style={{ color: "#666", fontSize: "14px" }}>
-                    Gestion des agences de l'organisation
-                  </p>
-                </div>
+                <div />
                 <button
                   onClick={openAddDepartmentModal}
                   style={{
