@@ -20233,7 +20233,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                                 onClick={() => openEditDepartmentModal(dept)}
                                 style={{
                                   padding: "6px 12px",
-                                  background: "#3b82f6",
+                                  background: "hsl(25, 95%, 53%)",
                                   color: "white",
                                   border: "none",
                                   borderRadius: "6px",
@@ -20247,8 +20247,8 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                                 onClick={() => handleToggleDepartment(dept.id)}
                                 style={{
                                   padding: "6px 12px",
-                                  background: dept.is_active ? "#ef4444" : "#10b981",
-                                  color: "white",
+                                  background: "#e5e7eb",
+                                  color: "#111827",
                                   border: "none",
                                   borderRadius: "6px",
                                   fontSize: "13px",
