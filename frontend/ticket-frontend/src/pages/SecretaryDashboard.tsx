@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useSearchParams, useLocation, useNavigate } from "react-router-dom";
-import { Clock3, Users, CheckCircle2, CheckCircle, ChevronRight, ChevronLeft, ChevronDown, LayoutDashboard, Bell, Search, Clock, Monitor, Wrench, Forward, AlertTriangle, BarChart3, TrendingUp, Box, UserPlus, FileText, UserCheck, RefreshCcw, Filter, Calendar, Layers, Building2, User, FileSpreadsheet, MessageCircle, Flag, Share2, Package, Trash2, DollarSign, Ticket as TicketIcon, Archive, Banknote, Download, Plus, PlusCircle, Pencil, X, FolderTree, Tag, HardDrive, Laptop, Printer, Keyboard, Mouse, Phone, Tablet, Network, QrCode, MapPin, Eye, Lock, Send } from "lucide-react";
+import { Clock3, Users, CheckCircle2, CheckCircle, ChevronRight, ChevronLeft, ChevronDown, LayoutDashboard, Bell, Search, Clock, Monitor, Wrench, Forward, AlertTriangle, BarChart3, TrendingUp, Box, UserPlus, FileText, UserCheck, RefreshCcw, Filter, Calendar, Layers, Building2, User, FileSpreadsheet, MessageCircle, Flag, Share2, Package, Trash2, Ticket as TicketIcon, Archive, Banknote, Download, Plus, PlusCircle, Pencil, X, FolderTree, Tag, HardDrive, Laptop, Printer, Keyboard, Mouse, Phone, Tablet, Network, QrCode, MapPin, Eye, Lock, Send } from "lucide-react";
 import helpdeskLogo from "../assets/helpdesk-logo.png";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -18,8 +18,7 @@ import {
   Legend,
   ResponsiveContainer,
   AreaChart,
-  Area,
-  LabelList
+  Area
 } from "recharts";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/style.css";
@@ -229,17 +228,13 @@ const assetTypeLabels: Record<string, string> = {
 };
 
 // Composant Label personnalisé pour les donut charts avec labels externes et lignes de connexion
-const CustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, name, fill, value }: any) => {
+const CustomLabel = ({ cx, cy, midAngle, outerRadius, percent, name, fill, value }: any) => {
   // Ne pas afficher le label si la valeur est 0 ou le pourcentage est 0%
   if (value === 0 || percent === 0 || Math.round(percent * 100) === 0) {
     return null;
   }
   
   const RADIAN = Math.PI / 180;
-  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-  const x = cx + radius * Math.cos(-midAngle * RADIAN);
-  const y = cy + radius * Math.sin(-midAngle * RADIAN);
-  
   // Position externe pour le label (outerRadius + 25px pour plus d'espace)
   const labelRadius = outerRadius + 25;
   const labelX = cx + labelRadius * Math.cos(-midAngle * RADIAN);
@@ -384,7 +379,7 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
   
   // Fonction pour formater le message de notification en remplaçant #X par TKT-XXX
   const formatNotificationMessage = (message: string): string => {
-    return message.replace(/#(\d+)/g, (match, number) => {
+    return message.replace(/#(\d+)/g, (_match, number) => {
       return formatTicketNumber(parseInt(number, 10));
     });
   };
@@ -421,7 +416,7 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
   });
   const [activeSection, setActiveSection] = useState<string>("dashboard");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [agencyFilter, setAgencyFilter] = useState<string>("all");
+  const [agencyFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
   const [delegationFilter, setDelegationFilter] = useState<string>("all");
   // Filtres avancés section Tickets (Adjoint DSI uniquement)
@@ -1245,26 +1240,6 @@ function SecretaryDashboard({ token }: SecretaryDashboardProps) {
     }
   }
   
-  async function clearAllNotifications() {
-    const confirmed = window.confirm("Confirmer l'effacement de toutes les notifications ?");
-    if (!confirmed) return;
-    try {
-      const unreadIds = notifications.filter((n) => !n.read).map((n) => n.id);
-      if (token && token.trim() !== "" && unreadIds.length > 0) {
-        await Promise.all(
-          unreadIds.map((id) =>
-            fetch(`http://localhost:8000/notifications/${id}/read`, {
-              method: "PUT",
-              headers: { Authorization: `Bearer ${token}` },
-            })
-          )
-        );
-      }
-    } catch {}
-    setNotifications([]);
-    setUnreadCount(0);
-  }
-
   function handleLogout() {
     localStorage.removeItem("token");
     localStorage.removeItem("userRole");
@@ -8356,7 +8331,7 @@ Les données détaillées seront disponibles dans une prochaine version.</pre>
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                       <span style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", color: "#6b7280" }}><User size={12} /><span>Utilisateur</span></span>
-                      <OrangeSelect value={advancedUserFilter} onChange={setAdvancedUserFilter} options={[{ value: "all", label: "Tous" }, ...advancedUsers.map((u) => ({ value: u, label: u }))]} />
+                      <OrangeSelect value={advancedUserFilter} onChange={setAdvancedUserFilter} options={[{ value: "all", label: "Tous" }, ...advancedUsers.filter((u): u is string => typeof u === "string").map((u) => ({ value: u, label: u }))]} />
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                       <span style={{ fontSize: "12px", color: "#6b7280" }}>Créé par (nom)</span>
